@@ -46,6 +46,10 @@ class Window:
     def set_title(self, title):
         pass
 
+    def get_position(self):
+        self.interface.factory.not_implemented('Window.get_position()')
+        return self.interface._position
+
     def set_position(self, position):
         pass
 
