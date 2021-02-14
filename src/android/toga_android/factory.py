@@ -3,6 +3,7 @@ from .fonts import Font
 from .icons import Icon
 from .images import Image
 from .paths import paths
+from .util.clipboard import Clipboard
 from .widgets.box import Box
 from .widgets.button import Button
 from .widgets.detailedlist import DetailedList
@@ -28,6 +29,7 @@ __all__ = [
     "App",
     "Box",
     "Button",
+    "Clipboard",
     "Font",
     "Icon",
     "Image",
