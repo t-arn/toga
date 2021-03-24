@@ -23,7 +23,13 @@ class ExampleTableApp(toga.App):
         self.label_table1.text = 'You selected row: {}'.format(row.title) if row is not None else 'No row selected'
 
     def on_select_handler2(self, widget, row, **kwargs):
-        self.label_table2.text = 'Rows selected: {}'.format(len(self.table2.selection))
+        titles = ''
+        if self.table2.selection is not None:
+            for row in self.table2.selection:
+                titles = titles + '  '+row.title
+            self.label_table2.text = 'Rows selected: {}: {}'.format(len(self.table2.selection), titles)
+        else:
+            self.label_table2.text = 'No row selected'
 
     # Button callback functions
     def insert_handler(self, widget, **kwargs):
@@ -31,6 +37,9 @@ class ExampleTableApp(toga.App):
 
     def delete_handler(self, widget, **kwargs):
         if self.table1.selection:
+            for row in self.table1.data:
+                print(row)
+            print(self.table1.selection)
             self.table1.data.remove(self.table1.selection)
         elif len(self.table1.data) > 0:
             self.table1.data.remove(self.table1.data[0])
@@ -72,7 +81,7 @@ class ExampleTableApp(toga.App):
         self.table1 = toga.Table(
             headings=headings,
             data=bee_movies[:4],
-            style=Pack(flex=1, padding_right=5),
+            style=Pack(flex=1, padding_right=5, height=250),
             multiple_select=False,
             on_select=self.on_select_handler1
         )
