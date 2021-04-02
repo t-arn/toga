@@ -100,8 +100,7 @@ class WinformsProactorEventLoop(asyncio.ProactorEventLoop):
 
     def enqueue_tick(self):
         # Queue a call to tick in 5ms.
-        self.task = Action[Task](self.tick)
-        Task.Delay(5).ContinueWith(self.task)
+        Task.Delay(5).ContinueWith(Action[Task](self.tick))
 
     def tick(self, *args, **kwargs):
         """
@@ -114,9 +113,6 @@ class WinformsProactorEventLoop(asyncio.ProactorEventLoop):
         # message, it will be caught by the MessageFilter we installed on the
         # Application thread.
 
-        if self.task:
-            self.task.Dispose()
-            del self.task
         # The message is sent with:
         # * HWND 0xfff (all windows),
         # * MSG self.msg_id (a message ID in the WM_USER range)
@@ -128,10 +124,7 @@ class WinformsProactorEventLoop(asyncio.ProactorEventLoop):
         # If the app context has a main form, invoke run_once_recurring()
         # on the thread associated with that form.
         if self.app_context.MainForm:
-            action = Action(self.run_once_recurring)
-            self.app_context.MainForm.Invoke(action)
-            action.Dispose()
-            del action
+            self.app_context.MainForm.Invoke(Action(self.run_once_recurring))
 
     def run_once_recurring(self):
         """
