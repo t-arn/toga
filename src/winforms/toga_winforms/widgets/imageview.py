@@ -8,6 +8,7 @@ class ImageView(Widget):
     def create(self):
         self.native = WinForms.PictureBox()
         self.native.interface = self.interface
+        self.native._impl = self
         self.native.SizeMode = WinForms.PictureBoxSizeMode.StretchImage
         self.native.Click += self.winforms_click
 
