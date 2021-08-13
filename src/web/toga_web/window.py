@@ -75,8 +75,11 @@ class Window:
     def close(self):
         self.interface.factory.not_implemented('Window.close()')
 
+    def get_position(self):
+        return (0, 0)  # windows position isn't something that is user controllable here
+
     def set_position(self, position):
-        self.interface.factory.not_implemented('Window.set_position()')
+        pass  # windows position isn't something that is user controllable here
 
     def set_size(self, size):
         self.interface.factory.not_implemented('Window.set_size()')

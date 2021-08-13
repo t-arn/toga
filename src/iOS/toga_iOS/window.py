@@ -57,8 +57,11 @@ class Window:
     def set_title(self, title):
         pass
 
+    def get_position(self):
+        return (0, 0)  # windows are always full screen in iOS
+
     def set_position(self, position):
-        pass
+        pass  # windows are always full screen in iOS
 
     def set_size(self, size):
         pass

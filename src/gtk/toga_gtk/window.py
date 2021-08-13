@@ -144,8 +144,12 @@ class Window:
     def close(self):
         self.native.close()
 
+    def get_position(self):
+        self.interface.factory.not_implemented('Window.get_position()')
+        return (0, 0)  # dummy value, because method is not implemented yet
+
     def set_position(self, position):
-        pass
+        self.interface.factory.not_implemented('Window.set_position()')
 
     def set_size(self, size):
         pass
