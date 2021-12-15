@@ -11,7 +11,6 @@ from .libs.android.graphics import Drawable
 from .window import Window
 
 
-
 # `MainWindow` is defined here in `app.py`, not `window.py`, to mollify the test suite.
 class MainWindow(Window):
     pass
@@ -235,11 +234,8 @@ class App:
         await result_future
         return result_future.result()
 
-<<<<<<< HEAD
-=======
     def onSaveInstanceState(self, outState):
         self.interface.onSaveInstanceState(outState)
 
     def onRestoreInstanceState(self, savedInstanceState):
         self.interface.onRestoreInstanceState(savedInstanceState)
->>>>>>> android_save_ui_state
