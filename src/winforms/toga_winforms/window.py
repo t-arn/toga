@@ -41,9 +41,13 @@ class Window:
         self.native = WinForms.Form(self)
         self.native.ClientSize = Size(*self.interface._size)
         self.native.interface = self.interface
-        self.native.Resize += self.winforms_resize
         self.toolbar_native = None
         self.toolbar_items = None
+        if self.native.interface.resizeable:
+            self.native.Resize += self.winforms_resize
+        else:
+            self.native.FormBorderStyle = self.native.FormBorderStyle.FixedSingle
+            self.native.MaximizeBox = False
 
         # Tell Winforms to heed self.native.Location on window creation
         self.native.StartPosition = WinForms.FormStartPosition.Manual

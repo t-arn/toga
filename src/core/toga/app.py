@@ -588,7 +588,7 @@ class App:
         Args:
             handler (:obj:`callable`): Coroutine, generator or callable.
         """
-        self._impl.add_background_task(handler)
+        self._impl.add_background_task(wrapped_handler(self, handler))
 
     def onSaveInstanceState(self, outState):
         """Override this method in your Android toga.App to save the data of your
