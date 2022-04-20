@@ -55,7 +55,7 @@ class ScrollContainer(Widget):
         self.hScrollListener.is_scrolling_enabled = self.interface.horizontal
         self.hScrollView.setOnTouchListener(self.hScrollListener)
         vScrollView.addView(self.hScrollView, hScrollView_layout_params)
-        if self.interface.content:
+        if self.interface.content is not None:
             self.set_content(self.interface.content)
 
     def set_content(self, widget):
