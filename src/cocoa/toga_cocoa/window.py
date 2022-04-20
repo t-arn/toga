@@ -1,5 +1,4 @@
 from toga.command import Command as BaseCommand
-from toga_cocoa import dialogs
 from toga_cocoa.libs import (
     SEL,
     NSBackingStoreBuffered,
@@ -14,6 +13,7 @@ from toga_cocoa.libs import (
     NSMiniaturizableWindowMask,
     NSMutableArray,
     NSObject,
+    NSPoint,
     NSResizableWindowMask,
     NSScreen,
     NSSize,
@@ -138,21 +138,9 @@ class WindowDelegate(NSObject):
 
 
 class Window:
-    def __init__(self, interface):
+    def __init__(self, interface, title, position, size):
         self.interface = interface
         self.interface._impl = self
-        self.create()
-
-    def create(self):
-        # OSX origin is bottom left of screen, and the screen might be
-        # offset relative to other screens. Adjust for this.
-        screen = NSScreen.mainScreen.visibleFrame
-        position = NSMakeRect(
-            screen.origin.x + self.interface.position[0],
-            screen.size.height + screen.origin.y - self.interface.position[1] - self.interface._size[1],
-            self.interface._size[0],
-            self.interface._size[1]
-        )
 
         mask = NSTitledWindowMask
         if self.interface.closeable:
@@ -164,19 +152,24 @@ class Window:
         if self.interface.minimizable:
             mask |= NSMiniaturizableWindowMask
 
+        # Create the window with a default frame;
+        # we'll update size and position later.
         self.native = NSWindow.alloc().initWithContentRect(
-            position,
+            NSMakeRect(0, 0, 0, 0),
             styleMask=mask,
             backing=NSBackingStoreBuffered,
             defer=False
         )
-        self.native.setFrame(position, display=True, animate=False)
+
+        self.set_title(title)
+        self.set_size(size)
+        self.set_position(position)
 
         self.delegate = WindowDelegate.alloc().init()
         self.delegate.interface = self.interface
         self.delegate.impl = self
 
-        self.native.setDelegate_(self.delegate)
+        self.native.delegate = self.delegate
 
     def create_toolbar(self):
         self._toolbar_items = {}
@@ -221,19 +214,51 @@ class Window:
         )
         widget.native.addConstraint(self._min_height_constraint)
 
+    def get_title(self):
+        return str(self.native.title)
+
     def set_title(self, title):
         self.native.title = title
 
     def get_position(self):
-        self.interface.factory.not_implemented('Window.get_position()')
-        return (0, 0)  # dummy value, because method is not implemented yet
+        # If there is no active screen, we can't get a position
+        if len(NSScreen.screens) == 0:
+            return (0, 0)
+
+        primary_screen = NSScreen.screens[0].frame
+        window_frame = self.native.frame
+
+        # macOS origin is bottom left of screen, and the screen might be
+        # offset relative to other screens. Adjust for this.
+        return (
+            primary_screen.origin.x + window_frame.origin.x,
+            primary_screen.origin.y + primary_screen.size.height - (
+                window_frame.origin.y + window_frame.size.height
+            )
+        )
 
     def set_position(self, position):
-        self.interface.factory.not_implemented('Window.set_position()')
+        # If there is no active screen, we can't set a position
+        if len(NSScreen.screens) == 0:
+            return
+
+        # The "principal" screen has index 0 and origin (0, 0).
+        primary_screen = NSScreen.screens[0].frame
+
+        # macOS origin is bottom left of screen, and the screen might be
+        # offset relative to other screens. Adjust for this.
+        x = primary_screen.origin.x + position[0]
+        y = primary_screen.origin.y + primary_screen.size.height - position[1]
+
+        self.native.setFrameTopLeftPoint(NSPoint(x, y))
+
+    def get_size(self):
+        frame = self.native.frame
+        return (frame.size.width, frame.size.height)
 
     def set_size(self, size):
         frame = self.native.frame
-        frame.size = NSSize(self.interface._size[0], self.interface._size[1])
+        frame.size = NSSize(size[0], size[1])
         self.native.setFrame(frame, display=True, animate=True)
 
     def set_app(self, app):
@@ -263,41 +288,8 @@ class Window:
 
     def cocoa_windowShouldClose(self):
         if self.interface.on_close:
-            should_close = self.interface.on_close(self)
-        else:
-            should_close = True
-
-        if should_close:
-            self.interface.app.windows -= self.interface
-
-        return should_close
+            self.interface.on_close(self)
+        return False
 
     def close(self):
-        # Close window directly here, don't use `NSWindow.performClose()`
-        # because it won't work if the window does not have a close button.
-        if self.cocoa_windowShouldClose():
-            self.native.close()
-
-    def info_dialog(self, title, message):
-        return dialogs.info(self.interface, title, message)
-
-    def question_dialog(self, title, message):
-        return dialogs.question(self.interface, title, message)
-
-    def confirm_dialog(self, title, message):
-        return dialogs.confirm(self.interface, title, message)
-
-    def error_dialog(self, title, message):
-        return dialogs.error(self.interface, title, message)
-
-    def stack_trace_dialog(self, title, message, content, retry=False):
-        return dialogs.stack_trace(self.interface, title, message, content, retry)
-
-    def save_file_dialog(self, title, suggested_filename, file_types):
-        return dialogs.save_file(self.interface, title, suggested_filename, file_types)
-
-    def open_file_dialog(self, title, initial_directory, file_types, multiselect):
-        return dialogs.open_file(self.interface, title, file_types, multiselect)
-
-    def select_folder_dialog(self, title, initial_directory, multiselect):
-        return dialogs.select_folder(self.interface, title, multiselect)
+        self.native.close()

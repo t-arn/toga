@@ -1,6 +1,6 @@
 from toga import GROUP_BREAK, SECTION_BREAK
 
-from .libs import Size, WinForms, Point
+from .libs import Point, Size, WinForms
 
 
 class WinFormsViewport:
@@ -32,15 +32,26 @@ class WinFormsViewport:
 
 
 class Window:
-    def __init__(self, interface):
+    def __init__(self, interface, title, position, size):
         self.interface = interface
         self.interface._impl = self
-        self.create()
 
-    def create(self):
-        self.native = WinForms.Form(self)
-        self.native.ClientSize = Size(*self.interface._size)
+        # Winforms close handling is caught on the FormClosing handler. To allow
+        # for async close handling, we need to be able to abort this close
+        # event, and then manually cause the close as part of the async result
+        # handling. However, this then causes an is_closing event, which we need
+        # to ignore. The `_is_closing` flag lets us easily identify if the
+        # window is in the process of closing.
+        self._is_closing = False
+
+        self.native = WinForms.Form()
         self.native.interface = self.interface
+        self.native.FormClosing += self.winforms_FormClosing
+
+        self.set_title(title)
+        self.set_size(size)
+        self.set_position(position)
+
         self.toolbar_native = None
         self.toolbar_items = None
         if self.native.interface.resizeable:
@@ -48,10 +59,6 @@ class Window:
         else:
             self.native.FormBorderStyle = self.native.FormBorderStyle.FixedSingle
             self.native.MaximizeBox = False
-
-        # Tell Winforms to heed self.native.Location on window creation
-        self.native.StartPosition = WinForms.FormStartPosition.Manual
-        self.native.Location = Point(*self.interface.position)
 
     def create_toolbar(self):
         self.toolbar_native = WinForms.ToolStrip()
@@ -74,10 +81,13 @@ class Window:
         return (self.native.Location.X, self.native.Location.Y)
 
     def set_position(self, position):
-        self.native.Location = Point(position[0], position[1])
+        self.native.Location = Point(*position)
+
+    def get_size(self):
+        return (self.native.ClientSize.Width, self.native.ClientSize.Height)
 
     def set_size(self, size):
-        self.native.ClientSize = Size(*self.interface._size)
+        self.native.ClientSize = Size(*size)
 
     def set_app(self, app):
         if app is None:
@@ -116,6 +126,9 @@ class Window:
         for child in widget.interface.children:
             child._impl.container = widget
 
+    def get_title(self):
+        return self.native.Text
+
     def set_title(self, title):
         self.native.Text = title
 
@@ -137,22 +150,25 @@ class Window:
         )
         self.interface.content.refresh()
 
-        self.native.FormClosing += self.winforms_FormClosing
-
         if self.interface is not self.interface.app._main_window:
             self.native.Icon = self.interface.app.icon._impl.native
             self.native.Show()
 
     def winforms_FormClosing(self, sender, event):
-        if self.interface.on_close:
-            should_close = self.interface.on_close(self)
-        else:
-            should_close = True
-
-        if should_close:
-            self.interface.app.windows -= self.interface
-        else:
-            event.Cancel = True
+        # If the app is exiting, or a manual close has been requested,
+        # don't get confirmation; just close.
+        if not self.interface.app._impl._is_exiting and not self._is_closing:
+            if not self.interface.closeable:
+                # Closeability is implemented by shortcutting the close handler.
+                event.Cancel = True
+            elif self.interface.on_close:
+                # If there is an on_close event handler, process it;
+                # but then cancel the close event. If the result of
+                # on_close handling indicates the window should close,
+                # then it will be manually triggered as part of that
+                # result handling.
+                self.interface.on_close(self)
+                event.Cancel = True
 
     def set_full_screen(self, is_full_screen):
         self.interface.factory.not_implemented('Window.set_full_screen()')
@@ -161,84 +177,10 @@ class Window:
         pass
 
     def close(self):
+        self._is_closing = True
         self.native.Close()
 
     def winforms_resize(self, sender, args):
         if self.interface.content:
             # Re-layout the content
             self.interface.content.refresh()
-
-    def info_dialog(self, title, message):
-        return WinForms.MessageBox.Show(message, title, WinForms.MessageBoxButtons.OK)
-
-    def question_dialog(self, title, message):
-        result = WinForms.MessageBox.Show(
-            message, title, WinForms.MessageBoxButtons.YesNo
-        )
-        return result == WinForms.DialogResult.Yes
-
-    def confirm_dialog(self, title, message):
-        result = WinForms.MessageBox.Show(message, title, WinForms.MessageBoxButtons.OKCancel)
-        # this returns 1 (DialogResult.OK enum) for OK and 2 for Cancel
-        return True if result == WinForms.DialogResult.OK else False
-
-    def error_dialog(self, title, message):
-        return WinForms.MessageBox.Show(message, title, WinForms.MessageBoxButtons.OK,
-                                        WinForms.MessageBoxIcon.Error)
-
-    def stack_trace_dialog(self, title, message, content, retry=False):
-        pass
-
-    def save_file_dialog(self, title, suggested_filename, file_types):
-        dialog = WinForms.SaveFileDialog()
-        dialog.Title = title
-        if suggested_filename is not None:
-            dialog.FileName = suggested_filename
-        if file_types is not None:
-            dialog.Filter = self.build_filter(file_types)
-        if dialog.ShowDialog() == WinForms.DialogResult.OK:
-            return dialog.FileName
-        else:
-            raise ValueError("No filename provided in the save file dialog")
-
-    def open_file_dialog(self, title, initial_directory, file_types, multiselect):
-        dialog = WinForms.OpenFileDialog()
-        dialog.Title = title
-        if initial_directory is not None:
-            dialog.InitialDirectory = initial_directory
-        if file_types is not None:
-            dialog.Filter = self.build_filter(file_types)
-        if multiselect:
-            dialog.Multiselect = True
-        if dialog.ShowDialog() == WinForms.DialogResult.OK:
-            return dialog.FileNames if multiselect else dialog.FileName
-        else:
-            raise ValueError("No filename provided in the open file dialog")
-
-    def select_folder_dialog(self, title, initial_directory, multiselect):
-        dialog = WinForms.FolderBrowserDialog()
-        dialog.Title = title
-        if initial_directory is not None:
-            dialog.InitialDirectory = initial_directory
-
-        if dialog.ShowDialog() == WinForms.DialogResult.OK:
-            return [dialog.SelectedPath]
-        else:
-            raise ValueError("No folder provided in the select folder dialog")
-
-    def build_filter(self, file_types):
-        filters = [
-            "{0} files (*.{0})|*.{0}".format(ext)
-            for ext in file_types
-        ] + [
-            "All files (*.*)|*.*"
-        ]
-
-        if len(file_types) > 1:
-            filters.insert(0, "All matching files ({0})|{0}".format(
-                ';'.join([
-                    '*.{0}'.format(ext)
-                    for ext in file_types
-                ])
-            ))
-        return '|'.join(filters)

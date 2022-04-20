@@ -1,8 +1,4 @@
-from . import dialogs
-from .libs.activity import Activity
 from .libs.android import R__attr
-from .libs.android.content import Intent
-from .libs.android.net import Uri
 from .libs.android.util import TypedValue
 
 
@@ -49,13 +45,11 @@ class AndroidViewport:
 
 
 class Window:
-    def __init__(self, interface):
+    def __init__(self, interface, title, position, size):
         self.interface = interface
         self.interface._impl = self
-        self.create()
 
-    def create(self):
-        pass
+        # self.set_title(title)
 
     def set_app(self, app):
         self.app = app
@@ -72,16 +66,27 @@ class Window:
         for child in widget.interface.children:
             child._impl.container = widget
 
+    def get_title(self):
+        self.interface.factory.not_implemented("Window.get_title()")
+        return "?"
+
     def set_title(self, title):
+        self.interface.factory.not_implemented("Window.set_title()")
         pass
 
     def get_position(self):
-        return (0, 0)  # windows are always full screen in Android
+        return (0, 0)
 
     def set_position(self, position):
-        pass   # windows are always full screen in Android
+        # Does nothing on mobile
+        pass
+
+    def get_size(self):
+        display_metrics = self.interface.content._impl.native.getContext().getResources().getDisplayMetrics()
+        return (display_metrics.widthPixels, display_metrics.heightPixels)
 
     def set_size(self, size):
+        # Does nothing on mobile
         pass
 
     def create_toolbar(self):
@@ -90,109 +95,8 @@ class Window:
     def show(self):
         pass
 
+    def close(self):
+        pass
+
     def set_full_screen(self, is_full_screen):
         self.interface.factory.not_implemented('Window.set_full_screen()')
-
-    def info_dialog(self, title, message):
-        dialogs.info(self, title, message)
-
-    def question_dialog(self, title, message):
-        self.interface.factory.not_implemented('Window.question_dialog()')
-
-    def confirm_dialog(self, title, message):
-        self.interface.factory.not_implemented('Window.confirm_dialog()')
-
-    def error_dialog(self, title, message):
-        self.interface.factory.not_implemented('Window.error_dialog()')
-
-    def stack_trace_dialog(self, title, message, content, retry=False):
-        self.interface.factory.not_implemented('Window.stack_trace_dialog()')
-
-    def save_file_dialog(self, title, suggested_filename, file_types):
-        self.interface.factory.not_implemented('Window.save_file_dialog()')
-
-    async def open_file_dialog(self, title, initial_uri, file_mime_types, multiselect):
-        """
-        Opens a file chooser dialog and returns the chosen file as content URI.
-        Raises a ValueError when nothing has been selected
-
-        :param str title: The title is ignored on Android
-        :param initial_uri: The initial location shown in the file chooser. Must be a content URI, e.g.
-            'content://com.android.externalstorage.documents/document/primary%3ADownload%2FTest-dir'
-        :type initial_uri: str or None
-        :param file_mime_types: The file types allowed to select. Must be MIME types, e.g.
-               ['application/pdf','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].
-               Currently ignored to avoid error in rubicon
-        :type file_mime_types: list[str] or None
-        :param bool multiselect: If True, then several files can be selected
-        :returns: The content URI of the chosen file or a list of content URIs when multiselect=True.
-        :rtype: str or list[str]
-        """
-        print('Invoking Intent ACTION_OPEN_DOCUMENT')
-        intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.setType("*/*")
-        if initial_uri is not None and initial_uri != '':
-            intent.putExtra("android.provider.extra.INITIAL_URI", Uri.parse(initial_uri))
-        if file_mime_types is not None and file_mime_types != ['']:
-            # Commented out because rubicon currently does not support arrays and nothing else works with this Intent
-            # see https://github.com/beeware/rubicon-java/pull/53
-            # intent.putExtra(Intent.EXTRA_MIME_TYPES, file_mime_types)
-            self.interface.factory.not_implemented(
-                'Window.open_file_dialog() on Android currently does not support the file_type parameter')
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiselect)
-        selected_uri = None
-        result = await self.app.intent_result(intent)
-        if result["resultCode"] == Activity.RESULT_OK:
-            if result["resultData"] is not None:
-                selected_uri = result["resultData"].getData()
-                if multiselect:
-                    if selected_uri is None:
-                        # when the user selects more than 1 file, getData() will be None. Instead, getClipData() will
-                        # contain the list of chosen files
-                        selected_uri = []
-                        clip_data = result["resultData"].getClipData()
-                        if clip_data is not None:  # just to be sure there will never be a null reference exception...
-                            for i in range(0, clip_data.getItemCount()):
-                                selected_uri.append(str(clip_data.getItemAt(i).getUri()))
-                    else:
-                        selected_uri = [str(selected_uri)]
-        if selected_uri is None:
-            raise ValueError("No filename provided in the open file dialog")
-        return selected_uri
-
-    async def select_folder_dialog(self, title, initial_uri=None, multiselect=False):
-        """
-        Opens a folder chooser dialog and returns the chosen folder as content URI.
-        Raises a ValueError when nothing has been selected
-
-        :param str title: The title is ignored on Android
-        :param initial_uri: The initial location shown in the file chooser. Must be a content URI, e.g.
-            'content://com.android.externalstorage.documents/document/primary%3ADownload%2FTest-dir'
-        :type initial_uri: str or None
-        :param bool multiselect: If True, then several files can be selected
-        :returns: The content tree URI of the chosen folder or a list of content URIs when multiselect=True.
-        :rtype: str or list[str]
-        """
-        print('Invoking Intent ACTION_OPEN_DOCUMENT_TREE')
-        intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        if initial_uri is not None and initial_uri != '':
-            intent.putExtra("android.provider.extra.INITIAL_URI", Uri.parse(initial_uri))
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiselect)
-        selected_uri = None
-        result = await self.app.intent_result(intent)
-        if result["resultCode"] == Activity.RESULT_OK:
-            if result["resultData"] is not None:
-                selected_uri = result["resultData"].getData()
-                if multiselect is True:
-                    if selected_uri is None:
-                        selected_uri = []
-                        clip_data = result["resultData"].getClipData()
-                        if clip_data is not None:
-                            for i in range(0, clip_data.getItemCount()):
-                                selected_uri.append(str(clip_data.getItemAt(i).getUri()))
-                    else:
-                        selected_uri = [str(selected_uri)]
-        if selected_uri is None:
-            raise ValueError("No folder provided in the open folder dialog")
-        return selected_uri

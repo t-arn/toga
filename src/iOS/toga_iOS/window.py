@@ -1,4 +1,3 @@
-from toga_iOS import dialogs
 from toga_iOS.libs import UIApplication, UIScreen, UIViewController, UIWindow
 
 
@@ -30,13 +29,13 @@ class iOSViewport:
 
 
 class Window:
-    def __init__(self, interface):
+    def __init__(self, interface, title, position, size):
         self.interface = interface
         self.interface._impl = self
-        self.create()
 
-    def create(self):
         self.native = UIWindow.alloc().initWithFrame(UIScreen.mainScreen.bounds)
+
+        self.set_title(title)
 
     def set_content(self, widget):
         widget.viewport = iOSViewport(self.native)
@@ -53,16 +52,25 @@ class Window:
         self.native.rootViewController = self.controller
         self.controller.view = widget.native
 
+    def get_title(self):
+        self.interface.factory.not_implemented("Window.get_title()")
+        return "?"
+
     def set_title(self, title):
-        pass
+        self.interface.factory.not_implemented("Window.set_title()")
 
     def get_position(self):
-        return (0, 0)  # windows are always full screen in iOS
+        return (0, 0)
 
     def set_position(self, position):
-        pass  # windows are always full screen in iOS
+        # Does nothing on mobile
+        pass
+
+    def get_size(self):
+        return (UIScreen.mainScreen.bounds.size.width, UIScreen.mainScreen.bounds.size.height)
 
     def set_size(self, size):
+        # Does nothing on mobile
         pass
 
     def set_app(self, app):
@@ -77,17 +85,5 @@ class Window:
         # Refresh with the actual viewport to do the proper rendering.
         self.interface.content.refresh()
 
-    def info_dialog(self, title, message):
-        return dialogs.info_dialog(self.interface, title, message)
-
-    def question_dialog(self, title, message):
-        return dialogs.question_dialog(self.interface, title, message)
-
-    def confirm_dialog(self, title, message):
-        return dialogs.confirm_dialog(self.interface, title, message)
-
-    def error_dialog(self, title, message):
-        return dialogs.error_dialog(self.interface, title, message)
-
-    def stack_trace_dialog(self, title, message, content, retry=False):
-        self.interface.factory.not_implemented('Window.stack_trace_dialog()')
+    def close(self):
+        pass

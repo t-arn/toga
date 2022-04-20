@@ -3,8 +3,6 @@
 # from toga.command import GROUP_BREAK, SECTION_BREAK
 # from toga.handlers import wrapped_handler
 
-from . import dialogs
-
 
 class WebViewport:
     def __init__(self):
@@ -21,13 +19,11 @@ class WebViewport:
 
 
 class Window:
-    def __init__(self, interface):
+    def __init__(self, interface, title, position, size):
         self.interface = interface
         self.interface._impl = self
-        self.create()
 
-    def create(self):
-        pass
+        self.set_title(title)
 
     def __html__(self):
         return """
@@ -38,6 +34,10 @@ class Window:
             id=self.interface.id,
             content=self.interface.content._impl.__html__()
         )
+
+    def get_title(self):
+        self.interface.factory.not_implemented('Window.get_title()')
+        return "?"
 
     def set_title(self, title):
         self.interface.factory.not_implemented('Window.set_title()')
@@ -76,37 +76,18 @@ class Window:
         self.interface.factory.not_implemented('Window.close()')
 
     def get_position(self):
-        return (0, 0)  # windows position isn't something that is user controllable here
+        return (0, 0)
 
     def set_position(self, position):
-        pass  # windows position isn't something that is user controllable here
+        # Does nothing on web
+        pass
+
+    def get_size(self):
+        return (self.content.viewport.width, self.content.viewport.height)
 
     def set_size(self, size):
-        self.interface.factory.not_implemented('Window.set_size()')
+        # Does nothing on web
+        pass
 
     def set_full_screen(self, is_full_screen):
         self.interface.factory.not_implemented('Window.set_full_screen()')
-
-    def info_dialog(self, title, message):
-        return dialogs.info(self.interface, title, message)
-
-    def question_dialog(self, title, message):
-        return dialogs.question(self.interface, title, message)
-
-    def confirm_dialog(self, title, message):
-        return dialogs.confirm(self.interface, title, message)
-
-    def error_dialog(self, title, message):
-        return dialogs.error(self.interface, title, message)
-
-    def stack_trace_dialog(self, title, message, content, retry=False):
-        return dialogs.stack_trace(self.interface, title, message, content, retry)
-
-    def save_file_dialog(self, title, suggested_filename, file_types):
-        return dialogs.save_file(self.interface, title, suggested_filename, file_types)
-
-    def open_file_dialog(self, title, initial_directory, file_types, multiselect):
-        return dialogs.open_file(self.interface, title, file_types, multiselect)
-
-    def select_folder_dialog(self, title, initial_directory, multiselect):
-        return dialogs.select_folder(self.interface, title, multiselect)

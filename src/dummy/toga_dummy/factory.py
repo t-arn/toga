@@ -5,6 +5,7 @@ from .fonts import Font
 from .icons import Icon
 from .images import Image
 from .paths import paths
+from . import dialogs
 from .util.clipboard import Clipboard
 from .widgets.activityindicator import ActivityIndicator
 from .widgets.box import Box
@@ -45,11 +46,11 @@ __all__ = [
     'Command',
     'Document',
 
-    # Resources
     'Font',
     'Icon',
     'Image',
     'paths',
+    'dialogs',
 
     # Utils
     'Clipboard',
