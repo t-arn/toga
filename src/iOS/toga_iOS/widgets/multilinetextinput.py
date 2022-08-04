@@ -120,6 +120,9 @@ class MultilineTextInput(Widget):
     def set_readonly(self, value):
         self.native.editable = value
 
+    def set_wraplines(self, value):
+        self.interface.factory.not_implemented('MultilineTextInput.set_wraplines()')
+
     def set_value(self, value):
         self.native.text = value
         self.placeholder_label.setHidden_(len(self.native.text) > 0)
