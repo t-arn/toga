@@ -30,6 +30,9 @@ class MultilineTextInput(Widget):
     def set_readonly(self, value):
         self.native.ReadOnly = self.interface.readonly
 
+    def set_wrapline(self, value):
+        self.native.WordWrap = value
+
     def set_placeholder(self, value):
         self._placeholder = value
         self._update_text()

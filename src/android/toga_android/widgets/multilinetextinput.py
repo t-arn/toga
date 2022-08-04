@@ -23,6 +23,9 @@ class MultilineTextInput(Widget):
     def set_readonly(self, value):
         self.native.setFocusable(not value)
 
+    def set_wrapline(self, value):
+        pass  # not supported on Android
+
     def set_placeholder(self, value):
         # Android EditText's setHint() requires a Python string.
         self.native.setHint(value if value is not None else "")
