@@ -17,5 +17,8 @@ class MultilineTextInput(Widget):
     def set_readonly(self, value):
         self._set_value('readonly', value)
 
+    def set_wraplines(self, value):
+        self._set_value('wraplines', value)
+
     def set_on_change(self, handler):
         self._set_value('on_change', handler)

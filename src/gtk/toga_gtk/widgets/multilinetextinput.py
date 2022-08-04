@@ -33,6 +33,9 @@ class MultilineTextInput(Widget):
         self.textview.set_property('editable', not value)
         self.textview.set_property('cursor-visible', not value)
 
+    def set_wraplines(self, value):
+        self.interface.factory.not_implemented('MultilineTextInput.set_wraplines()')
+
     def set_placeholder(self, value):
         """ Set the placeholder text of the widget.
         GTK.TextView does not have a placeholder option by default so we have to create one.
