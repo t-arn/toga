@@ -21,7 +21,7 @@ class MultilineTextInput(Widget):
 
     def __init__(self, id=None, style=None, factory=None,
                  initial=None, readonly=False, placeholder=None,
-                 on_change=None, wrapline=True):
+                 on_change=None, wraplines=True):
         super().__init__(id=id, style=style, factory=factory)
 
         # Create a platform specific implementation of a MultilineTextInput
@@ -32,7 +32,7 @@ class MultilineTextInput(Widget):
         self.readonly = readonly
         self.placeholder = placeholder
         self.on_change = on_change
-        self.wrapline = wrapline
+        self.wraplines = wraplines
 
     @property
     def placeholder(self):
@@ -102,15 +102,15 @@ class MultilineTextInput(Widget):
         self._impl.set_on_change(self._on_change)
 
     @property
-    def wrapline(self):
+    def wraplines(self):
         """ Whether long lines are wrapped or not
 
         Returns:
             `True` if long lines are wrapped, `False` if long lines are not wrapped (horizontal scrolling is activated)
         """
-        return self._wrapline
+        return self._wraplines
 
-    @wrapline.setter
-    def wrapline(self, value):
-        self._wrapline = value
-        self._impl.set_wrapline(value)
+    @wraplines.setter
+    def wraplines(self, value):
+        self._wraplines = value
+        self._impl.set_wraplines(value)

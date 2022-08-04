@@ -11,9 +11,9 @@ class ExampleMultilineTextInputApp(toga.App):
     def readonly_toggle_pressed(self, widget, **kwargs):
         self.multiline_input.readonly = not self.multiline_input.readonly
 
-    def wrapline_toggle_pressed(self, widget, **kwargs):
-        self.multiline_input.wrapline = not self.multiline_input.wrapline
-        print("wrapline: {}".format(self.multiline_input.wrapline))
+    def wraplines_toggle_pressed(self, widget, **kwargs):
+        self.multiline_input.wraplines = not self.multiline_input.wraplines
+        print("wraplines: {}".format(self.multiline_input.wraplines))
 
     def add_content_pressed(self, widget, **kwargs):
         self.multiline_input.value = "All work and no play makes Jack a dull boy. All play and no work makes Jack a mere toy.\n" * 100
@@ -48,9 +48,9 @@ class ExampleMultilineTextInputApp(toga.App):
             on_press=self.readonly_toggle_pressed,
             style=Pack(flex=1)
         )
-        button_toggle_wrapline = toga.Button(
-            'Toggle wrapline',
-            on_press=self.wrapline_toggle_pressed,
+        button_toggle_wraplines = toga.Button(
+            'Toggle wraplines',
+            on_press=self.wraplines_toggle_pressed,
             style=Pack(flex=1)
         )
         button_add_content = toga.Button(
@@ -67,7 +67,7 @@ class ExampleMultilineTextInputApp(toga.App):
             children=[
                 button_toggle_enabled,
                 button_toggle_readonly,
-                button_toggle_wrapline,
+                button_toggle_wraplines,
                 button_add_content,
                 button_clear,
             ],
