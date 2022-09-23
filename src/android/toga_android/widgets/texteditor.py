@@ -27,7 +27,7 @@ class TogaTextWatcher(TextWatcher):
         pass
 
 
-class Editor(Widget):
+class TextEditor(Widget):
     def create(self):
         self.native = EditText(self._native_activity)
         self.native.setInputType(

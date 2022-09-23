@@ -3,31 +3,31 @@ from toga.constants import COLUMN, ROW
 from toga.style import Pack
 
 
-class ExampleEditorApp(toga.App):
+class ExampleTextEditorApp(toga.App):
     # Button callback functions
     def enable_toggle_pressed(self, widget, **kwargs):
-        self.editor.enabled = not self.editor.enabled
+        self.texteditor.enabled = not self.texteditor.enabled
 
     def readonly_toggle_pressed(self, widget, **kwargs):
-        self.editor.readonly = not self.editor.readonly
+        self.texteditor.readonly = not self.texteditor.readonly
 
     def add_content_pressed(self, widget, **kwargs):
-        self.editor.value = "All work and no play makes Jack a dull boy... " * 100
+        self.texteditor.value = "All work and no play makes Jack a dull boy... " * 100
 
     def clear_pressed(self, widget, **kwargs):
-        self.editor.clear()
+        self.texteditor.clear()
 
     def set_label(self, widget):
-        if self.editor.value == "":
+        if self.texteditor.value == "":
             self.label.text = "Nothing has been written yet"
             return
-        number_of_lines = len(self.editor.value.split("\n"))
+        number_of_lines = len(self.texteditor.value.split("\n"))
         self.label.text = "{} lines has been written".format(number_of_lines)
 
     def startup(self):
         self.main_window = toga.MainWindow(title=self.name)
 
-        self.editor = toga.Editor(
+        self.texteditor = toga.TextEditor(
             placeholder='Enter text here...',
             value='Initial value',
             style=Pack(flex=1, font_family='monospace', font_size=14),
@@ -69,7 +69,7 @@ class ExampleEditorApp(toga.App):
         self.label = toga.Label("Nothing has been written yet")
 
         outer_box = toga.Box(
-            children=[btn_box, self.editor, self.label],
+            children=[btn_box, self.texteditor, self.label],
             style=Pack(
                 direction=COLUMN,
                 padding=10
@@ -81,7 +81,7 @@ class ExampleEditorApp(toga.App):
 
 
 def main():
-    return ExampleEditorApp('Editor', 'org.beeware.widgets.editor')
+    return ExampleTextEditorApp('TextEditor', 'org.beeware.widgets.texteditor')
 
 
 if __name__ == '__main__':

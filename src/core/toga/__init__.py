@@ -13,7 +13,6 @@ from .widgets.base import Widget
 from .widgets.box import Box
 from .widgets.button import Button
 from .widgets.canvas import Canvas
-from .widgets.editor import Editor
 from .widgets.datepicker import DatePicker
 from .widgets.detailedlist import DetailedList
 from .widgets.divider import Divider
@@ -30,6 +29,7 @@ from .widgets.slider import Slider
 from .widgets.splitcontainer import SplitContainer
 from .widgets.switch import Switch
 from .widgets.table import Table
+from .widgets.texteditor import TextEditor
 from .widgets.textinput import TextInput
 from .widgets.timepicker import TimePicker
 from .widgets.tree import Tree
@@ -59,7 +59,6 @@ __all__ = [
     'Canvas',
     'DetailedList',
     'Divider',
-    'Editor',
     'Window',
     'Widget',
     'ImageView',
@@ -77,6 +76,7 @@ __all__ = [
     'SplitContainer',
     'Switch',
     'Table',
+    'TextEditor',
     'TextInput',
     'Tree',
     'WebView'

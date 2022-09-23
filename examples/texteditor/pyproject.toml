@@ -2,7 +2,7 @@
 requires = ["briefcase"]
 
 [tool.briefcase]
-project_name = "Editor Demo"
+project_name = "Text Editor Demo"
 bundle = "org.beeware"
 version = "0.3.0.dev37"
 url = "https://beeware.org"
@@ -10,39 +10,39 @@ license = "BSD license"
 author = 'Tiberius Yak'
 author_email = "tiberius@beeware.org"
 
-[tool.briefcase.app.editor]
-formal_name = "Editor Demo"
+[tool.briefcase.app.texteditor]
+formal_name = "Text Editor Demo"
 description = "A testing app"
-sources = ['editor']
+sources = ['texteditor']
 requires = [
     '../../src/core',
 ]
 
 
-[tool.briefcase.app.editor.macOS]
+[tool.briefcase.app.texteditor.macOS]
 requires = [
     '../../src/cocoa',
     'std-nslog>=1.0.0',
 ]
 
-[tool.briefcase.app.editor.linux]
+[tool.briefcase.app.texteditor.linux]
 requires = [
     '../../src/gtk',
 ]
 
-[tool.briefcase.app.editor.windows]
+[tool.briefcase.app.texteditor.windows]
 requires = [
     '../../src/winforms',
 ]
 
 # Mobile deployments
-[tool.briefcase.app.editor.iOS]
+[tool.briefcase.app.texteditor.iOS]
 requires = [
     '../../src/iOS',
     'std-nslog>=1.0.0',
 ]
 
-[tool.briefcase.app.editor.android]
+[tool.briefcase.app.texteditor.android]
 requires = [
     '../../src/android',
 ]

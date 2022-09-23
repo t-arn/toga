@@ -1,4 +1,4 @@
-from editor.app import main
+from texteditor.app import main
 
 if __name__ == '__main__':
     main().main_loop()

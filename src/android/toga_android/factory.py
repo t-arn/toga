@@ -11,7 +11,6 @@ from .widgets.button import Button
 from .widgets.canvas import Canvas
 from .widgets.datepicker import DatePicker
 from .widgets.detailedlist import DetailedList
-from .widgets.editor import Editor
 from .widgets.imageview import ImageView
 from .widgets.label import Label
 from .widgets.multilinetextinput import MultilineTextInput
@@ -23,6 +22,7 @@ from .widgets.selection import Selection
 from .widgets.slider import Slider
 from .widgets.switch import Switch
 from .widgets.table import Table
+from .widgets.texteditor import TextEditor
 from .widgets.textinput import TextInput
 from .widgets.timepicker import TimePicker
 from .widgets.webview import WebView
@@ -40,7 +40,6 @@ __all__ = [
     "Canvas",
     "Command",
     "DatePicker",
-    "Editor",
     "Font",
     "Icon",
     "Image",
@@ -56,6 +55,7 @@ __all__ = [
     "ScrollContainer",
     "Switch",
     "Table",
+    "TextEditor",
     "TextInput",
     "TimePicker",
     "WebView",

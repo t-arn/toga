@@ -5,7 +5,7 @@ from toga.handlers import wrapped_handler
 from .base import Widget
 
 
-class Editor(Widget):
+class TextEditor(Widget):
     """ A text editor widget
 
     Args:
@@ -34,8 +34,8 @@ class Editor(Widget):
     ):
         super().__init__(id=id, style=style, factory=factory)
 
-        # Create a platform specific implementation of a MultilineTextInput
-        self._impl = self.factory.MultilineTextInput(interface=self)
+        # Create a platform specific implementation of a TextEditor
+        self._impl = self.factory.TextEditor(interface=self)
 
         # Set all the properties
         self.value = value
