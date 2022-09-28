@@ -37,6 +37,7 @@ class TextEditor(Widget):
         linenumbers=True
     ):
         super().__init__(id=id, style=style, factory=factory)
+        self.linenumbers = linenumbers  # this must be set before calling the factory
 
         # Create a platform specific implementation of a TextEditor
         self._impl = self.factory.TextEditor(interface=self)
@@ -47,7 +48,6 @@ class TextEditor(Widget):
         self.value = value
         self.readonly = readonly
         self.placeholder = placeholder
-        self.linenumbers = linenumbers
         self.on_change = on_change
 
     @property

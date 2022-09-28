@@ -1,4 +1,4 @@
-from toga.constants import LEFT
+from toga.constants import LEFT, RIGHT
 from travertino.size import at_least
 
 from toga_android.colors import native_color
@@ -6,7 +6,7 @@ from toga_android.colors import native_color
 from ..libs.android.graphics import Typeface
 from ..libs.android.text import InputType, TextWatcher
 from ..libs.android.util import TypedValue
-from ..libs.android.view import Gravity
+from ..libs.android.view import Gravity, View__MeasureSpec
 from ..libs.android.widget import (
     EditText,
     HorizontalScrollView,
@@ -60,7 +60,7 @@ class TextEditor(Widget):
         vsv.addView(ll_editor)
         if self.interface.linenumbers:
             self._et_numbers = EditText(self._native_activity)
-            self.set_alignment(self._et_numbers, RIGHT)
+            self._et_numbers.setGravity(Gravity.TOP | align(RIGHT))
             self._et_numbers.setTypeface(Typeface.MONOSPACE)
             self._et_numbers.setText("1")
             self._et_numbers.setEnabled(False)
@@ -70,7 +70,7 @@ class TextEditor(Widget):
         hsv.setFillViewport(True)
         ll_editor.addView(hsv)
         self._et_text = EditText(self._native_activity)
-        self.set_alignment(self._et_text, LEFT)
+        self.set_alignment(LEFT)
         self._et_text.setTypeface(Typeface.MONOSPACE)
         self._et_text.setInputType(
             InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
@@ -86,7 +86,7 @@ class TextEditor(Widget):
             lines = "1"
             for x in range(2, line_count + 1):
                 lines += "\n" + str(x)
-            self.set_value(lines)
+            self._et_numbers.setText(lines)
             self._prev_linecount = line_count
     
     def get_value(self):
@@ -99,13 +99,13 @@ class TextEditor(Widget):
         # Android EditText's setHint() requires a Python string.
         self._et_text.setHint(value if value is not None else "")
 
-    def set_alignment(self, obj, value):
+    def set_alignment(self, value):
         # Refuse to set alignment unless widget has been added to a container.
         # This is because Android EditText requires LayoutParams before
         # setGravity() can be called.
         if not self.native.getLayoutParams():
             return
-        obj.setGravity(Gravity.TOP | align(value))
+        self._et_text.setGravity(Gravity.TOP | align(value))
 
     def set_color(self, color):
         if color:
@@ -116,6 +116,8 @@ class TextEditor(Widget):
             font_impl = font.bind(self.interface.factory)
             self._et_text.setTextSize(TypedValue.COMPLEX_UNIT_SP, font_impl.get_size())
             self._et_text.setTypeface(font_impl.get_typeface(), font_impl.get_style())
+            self._et_numbers.setTextSize(TypedValue.COMPLEX_UNIT_SP, font_impl.get_size())
+            self._et_numbers.setTypeface(font_impl.get_typeface(), font_impl.get_style())
 
     def set_value(self, value):
         self._et_text.setText(value)

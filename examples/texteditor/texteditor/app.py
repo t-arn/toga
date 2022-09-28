@@ -12,7 +12,7 @@ class ExampleTextEditorApp(toga.App):
         self.texteditor.readonly = not self.texteditor.readonly
 
     def add_content_pressed(self, widget, **kwargs):
-        self.texteditor.value = "All work and no play makes Jack a dull boy... " * 100
+        self.texteditor.value = "All work and no play makes Jack a dull boy...\n" * 100
 
     def clear_pressed(self, widget, **kwargs):
         self.texteditor.clear()
@@ -30,10 +30,9 @@ class ExampleTextEditorApp(toga.App):
         self.texteditor = toga.TextEditor(
             placeholder='Enter text here...',
             value='Initial value',
-            style=Pack(flex=1, font_family='monospace', font_size=14),
+            style=Pack(flex=1, height=100, font_family='monospace', font_size=14),
             on_change=self.set_label
-        )
-
+        )  # why is flex=1 not taking the available height ???
         button_toggle_enabled = toga.Button(
             'Toggle enabled',
             on_press=self.enable_toggle_pressed,
