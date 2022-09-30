@@ -129,12 +129,5 @@ class TextEditor(Widget):
         self._et_text.addTextChangedListener(self._textChangedListener)
 
     def rehint(self):
-        # Android can crash when rendering some widgets until they have their layout params set. Guard for that case.
-        if not self.native.getLayoutParams():
-            return
-        self.native.measure(
-            View__MeasureSpec.UNSPECIFIED,
-            View__MeasureSpec.UNSPECIFIED,
-        )
-        self.interface.intrinsic.width = at_least(self.native.getMeasuredWidth())
-        self.interface.intrinsic.height = self.native.getMeasuredHeight()
+        self.interface.intrinsic.width = at_least(self.interface.MIN_WIDTH)
+        self.interface.intrinsic.height = at_least(self.interface.MIN_HEIGHT)

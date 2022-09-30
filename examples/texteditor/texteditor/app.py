@@ -30,7 +30,7 @@ class ExampleTextEditorApp(toga.App):
         self.texteditor = toga.TextEditor(
             placeholder='Enter text here...',
             value='Initial value',
-            style=Pack(flex=1, height=100, font_family='monospace', font_size=14),
+            style=Pack(flex=1, font_family='monospace', font_size=14),
             on_change=self.set_label
         )  # why is flex=1 not taking the available height ???
         button_toggle_enabled = toga.Button(
