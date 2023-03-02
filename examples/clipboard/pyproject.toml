@@ -1,0 +1,48 @@
+[build-system]
+requires = ["briefcase"]
+
+[tool.briefcase]
+project_name = "Test Clipboard"
+bundle = "org.beeware"
+version = "0.0.1"
+url = "https://beeware.org"
+license = "BSD license"
+author = 'Tiberius Yak'
+author_email = "tiberius@beeware.org"
+
+[tool.briefcase.app.clipboard]
+formal_name = "Test Clipboard"
+description = "A testing app"
+sources = ['clipboard']
+requires = [
+    '../../core',
+]
+
+
+[tool.briefcase.app.clipboard.macOS]
+requires = [
+    '../../cocoa',
+    'std-nslog>=1.0.0',
+]
+
+[tool.briefcase.app.clipboard.linux]
+requires = [
+    '../../gtk',
+]
+
+[tool.briefcase.app.clipboard.windows]
+requires = [
+    '../../winforms',
+]
+
+# Mobile deployments
+[tool.briefcase.app.clipboard.iOS]
+requires = [
+    '../../iOS',
+    'std-nslog>=1.0.0',
+]
+
+[tool.briefcase.app.clipboard.android]
+requires = [
+    '../../android',
+]
