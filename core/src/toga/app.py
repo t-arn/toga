@@ -594,6 +594,23 @@ class App:
         """
         self._impl.loop.call_soon_threadsafe(wrapped_handler(self, handler), self)
 
+    def onSaveInstanceState(self, outState):
+        """Override this method in your Android toga.App to save the data of your
+        displayed widgets in the outState Bundle. You also need to override
+        onRestoreInstanceState() where you set the widget data again after the app has restarted.
+        
+        :param JavaClass("android/os/Bundle") outState: The Bundle to save the data to
+        """
+        pass
+
+    def onRestoreInstanceState(self, savedInstanceState):
+        """Override this method in your Android toga.App to restore your widget data
+        saved in onSaveInstanceState()
+        
+        :param JavaClass("android/os/Bundle") savedInstanceState: The Bundle that contains the widget data
+        """
+        pass
+
 
 class DocumentApp(App):
     """A document-based application.

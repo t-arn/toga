@@ -161,6 +161,14 @@ class TogaApp(IPythonApp):
 
         return True
 
+    def onSaveInstanceState(self, outState):
+        print("Toga app: onSaveInstanceState")
+        self._impl.interface.onSaveInstanceState(outState)
+
+    def onRestoreInstanceState(self, savedInstanceState):
+        print("Toga app: onRestoreInstanceState")
+        self._impl.interface.onRestoreInstanceState(savedInstanceState)
+        
     @property
     def native(self):
         # We access `MainActivity.singletonThis` freshly each time, rather than
