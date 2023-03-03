@@ -1,7 +1,7 @@
 from ..libs.android.content import ClipboardManager as A_ClipboardManager
 from ..libs.android.content import ClipData as A_ClipData
 from ..libs.activity import MainActivity
-from rubicon.java.jni import java
+from rubicon.java import __cast__
 
 
 class Clipboard():
@@ -14,7 +14,7 @@ class Clipboard():
         self._native_activity = MainActivity.singletonThis
         clipboard = self._native_activity.getSystemService("clipboard")  # returns a java/lang/Object
         # cast the Object to ClipboardManager and assign it to self.clipboard_manager
-        self.clipboard_manager = A_ClipboardManager(__jni__=java.NewGlobalRef(clipboard))
+        self.clipboard_manager = __cast__(A_ClipboardManager, clipboard, globalref=False)
 
     def clear(self):
         self.clipboard_manager.clearPrimaryClip()
@@ -24,7 +24,7 @@ class Clipboard():
             clip_data = self.clipboard_manager.getPrimaryClip()
             item = clip_data.getItemAt(0)
             if item.getText():
-                return item.getText().toString()
+                return item.getText()
             else:
                 return None
         else:
