@@ -2,6 +2,7 @@ from . import dialogs
 from .app import App, MainWindow
 from .command import Command
 from .fonts import Font
+from .hardware.clipboard import Clipboard
 from .icons import Icon
 from .images import Image
 from .paths import paths
@@ -36,6 +37,7 @@ __all__ = [
     "Box",
     "Button",
     "Canvas",
+    "Clipboard",
     "Command",
     "DatePicker",
     "Font",

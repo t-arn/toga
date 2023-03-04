@@ -12,6 +12,7 @@ from toga.icons import Icon
 from toga.platform import get_platform_factory
 from toga.widgets.base import WidgetRegistry
 from toga.window import Window
+from toga.hardware.clipboard import Clipboard
 
 try:
     from importlib import metadata as importlib_metadata
@@ -175,6 +176,7 @@ class App:
     """
 
     app = None
+    _clipboard = None
 
     def __init__(
         self,
@@ -349,6 +351,16 @@ class App:
     def _create_impl(self):
         return self.factory.App(interface=self)
 
+    @property
+    def clipboard(self):
+        """
+        The system clipboard.
+        :returns: The system clipboard
+        """
+        if self._clipboard is None:
+            self._clipboard = Clipboard()
+        return self._clipboard
+        
     @property
     def name(self):
         """The formal name of the app.
