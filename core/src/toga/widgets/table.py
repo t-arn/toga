@@ -25,6 +25,7 @@ class Table(Widget):
         missing_value (``str`` or ``None``): value for replacing a missing value
             in the data source. (Default: None). When 'None', a warning message
             will be shown.
+        col_widths (``dict``) Mapping of column index to pixel width
 
     Examples:
         >>> headings = ['Head 1', 'Head 2', 'Head 3']
@@ -62,6 +63,7 @@ class Table(Widget):
         on_double_click=None,
         missing_value=None,
         factory=None,  # DEPRECATED!
+        col_widths=None,
     ):
         super().__init__(id=id, style=style)
         ######################################################################
@@ -80,6 +82,7 @@ class Table(Widget):
         self._on_select = None
         self._on_double_click = None
         self._data = None
+        self._col_widths = col_widths if col_widths is not None else {}
         if missing_value is None:
             print(
                 "WARNING: Using empty string for missing value in data. "
