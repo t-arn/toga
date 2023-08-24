@@ -1,6 +1,7 @@
 import os
 import warnings
 
+import toga
 from toga.platform import get_platform_factory
 
 
@@ -26,12 +27,7 @@ class cachedicon:
 
 
 class Icon:
-    """
-    A representation of an Icon image.
-
-    Icon is a deferred resource - it's impl isn't available until it the icon
-    is assigned to perform a role in an app. At the point at which the Icon is
-    used, the Icon is bound to a factory, and the implementation is created.
+    """A representation of an Icon image.
 
     :param path: The path to the icon file, relative to the application's
         module directory.
@@ -47,16 +43,16 @@ class Icon:
     def DEFAULT_ICON(cls):
         return Icon("resources/toga", system=True)
 
-    def __init__(self, path, system=False):
+    def __init__(self, path: str, system: bool = False):
         self.path = path
         self.system = system
 
         self.factory = get_platform_factory()
         try:
             if self.system:
-                resource_path = self.factory.paths.toga
+                resource_path = toga.App.app.paths.toga
             else:
-                resource_path = self.factory.paths.app
+                resource_path = toga.App.app.paths.app
 
             if self.factory.Icon.SIZES:
                 full_path = {
@@ -83,7 +79,7 @@ class Icon:
             )
             self._impl = Icon.DEFAULT_ICON._impl
 
-    def bind(self, factory=None):
+    def bind(self, factory: None = None):
         warnings.warn(
             "Icons no longer need to be explicitly bound.", DeprecationWarning
         )
@@ -101,7 +97,7 @@ class Icon:
                 if icon_path.exists():
                     return icon_path
 
-                # look for a icon file without a size in the filename
+                # look for an icon file without a size in the filename
                 icon_path = resource_path / f"{basename}{extension}"
                 if icon_path.exists():
                     return icon_path

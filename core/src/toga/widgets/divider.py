@@ -1,58 +1,59 @@
-import warnings
+from __future__ import annotations
+
+from toga.constants import Direction
 
 from .base import Widget
 
 
 class Divider(Widget):
-    """A visual divider line.
-
-    Args:
-        id (str): An identifier for this widget.
-        style (:obj:`Style`): An optional style object. If no style is provided then
-            a new one will be created for the widget.
-        direction: The direction for divider, either ``Divider.HORIZONTAL``
-            or ``Divider.VERTICAL``. Defaults to `Divider.HORIZONTAL``
-    """
-
-    HORIZONTAL = 0
-    VERTICAL = 1
+    HORIZONTAL = Direction.HORIZONTAL
+    VERTICAL = Direction.VERTICAL
 
     def __init__(
         self,
         id=None,
         style=None,
-        direction=HORIZONTAL,
-        factory=None,  # DEPRECATED!
+        direction: Direction = HORIZONTAL,
     ):
+        """Create a new divider line.
+
+        :param id: The ID for the widget.
+        :param style: A style object. If no style is provided, a default style will be
+            applied to the widget.
+        :param direction: The direction in which the divider will be drawn. Either
+            :attr:`~toga.constants.Direction.HORIZONTAL` or
+            :attr:`~toga.constants.Direction.VERTICAL`; defaults to
+            :attr:`~toga.constants.Direction.HORIZONTAL`
+        """
         super().__init__(id=id, style=style)
-
-        ######################################################################
-        # 2022-09: Backwards compatibility
-        ######################################################################
-        # factory no longer used
-        if factory:
-            warnings.warn("The factory argument is no longer used.", DeprecationWarning)
-        ######################################################################
-        # End backwards compatibility.
-        ######################################################################
-
-        self._direction = direction
 
         # Create a platform specific implementation of a Divider
         self._impl = self.factory.Divider(interface=self)
         self.direction = direction
 
     @property
-    def direction(self):
-        """The direction of the split.
+    def enabled(self) -> bool:
+        """Is the widget currently enabled? i.e., can the user interact with the widget?
 
-        Returns:
-            0 for vertical, 1 for horizontal.
+        Divider widgets cannot be disabled; this property will always return True; any
+        attempt to modify it will be ignored.
         """
-        return self._direction
+        return True
+
+    @enabled.setter
+    def enabled(self, value):
+        pass
+
+    def focus(self):
+        "No-op; Divider cannot accept input focus"
+        pass
+
+    @property
+    def direction(self) -> Direction:
+        """The direction in which the visual separator will be drawn."""
+        return self._impl.get_direction()
 
     @direction.setter
     def direction(self, value):
-        self._direction = value
         self._impl.set_direction(value)
         self.refresh()

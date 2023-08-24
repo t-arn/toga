@@ -5,7 +5,7 @@ Tree
 .. csv-filter:: Availability (:ref:`Key <api-status-key>`)
    :header-rows: 1
    :file: ../../data/widgets_by_platform.csv
-   :included_cols: 4,5,6,7,8,9
+   :included_cols: 4,5,6,7,8,9,10
    :exclude: {0: '(?!^(Tree|Component)$)'}
 
 The tree widget is still under development.
@@ -13,7 +13,7 @@ The tree widget is still under development.
 Usage
 -----
 
-.. code-block:: Python
+.. code-block:: python
 
     import toga
 
@@ -34,6 +34,4 @@ Usage
 Reference
 ---------
 
-.. autoclass:: toga.widgets.tree.Tree
-   :members:
-   :undoc-members:
+.. autoclass:: toga.Tree

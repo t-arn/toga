@@ -1,20 +1,21 @@
 import asyncio
 import re
 import sys
+import threading
+from ctypes import windll
+
+import System.Windows.Forms as WinForms
+from System import (
+    Environment,
+    Threading,
+)
+from System.Media import SystemSounds
+from System.Net import SecurityProtocolType, ServicePointManager
 
 import toga
 from toga import Key
 
 from .keys import toga_to_winforms_key
-from .libs import (
-    SecurityProtocolType,
-    ServicePointManager,
-    Threading,
-    WinForms,
-    shcore,
-    user32,
-    win_version,
-)
 from .libs.proactor import WinformsProactorEventLoop
 from .window import Window
 
@@ -48,6 +49,11 @@ class App:
         # window-level close handling.
         self._is_exiting = False
 
+        # Winforms cursor visibility is a stack; If you call hide N times, you
+        # need to call Show N times to make the cursor re-appear. Store a local
+        # boolean to allow us to avoid building a deep stack.
+        self._cursor_visible = True
+
         self.loop = WinformsProactorEventLoop()
         asyncio.set_event_loop(self.loop)
 
@@ -59,20 +65,25 @@ class App:
         # with the most up to date API
         # Windows Versioning Check Sources : https://www.lifewire.com/windows-version-numbers-2625171
         # and https://docs.microsoft.com/en-us/windows/release-information/
+        win_version = Environment.OSVersion.Version
         if win_version.Major >= 6:  # Checks for Windows Vista or later
             # Represents Windows 8.1 up to Windows 10 before Build 1703 which should use
             # SetProcessDpiAwareness(True)
             if (win_version.Major == 6 and win_version.Minor == 3) or (
                 win_version.Major == 10 and win_version.Build < 15063
             ):
-                shcore.SetProcessDpiAwareness(True)
+                windll.shcore.SetProcessDpiAwareness(True)
+                print(
+                    "WARNING: Your Windows version doesn't support DPI-independent rendering.  "
+                    "We recommend you upgrade to at least Windows 10 Build 1703."
+                )
             # Represents Windows 10 Build 1703 and beyond which should use
             # SetProcessDpiAwarenessContext(-2)
             elif win_version.Major == 10 and win_version.Build >= 15063:
-                user32.SetProcessDpiAwarenessContext(-2)
+                windll.user32.SetProcessDpiAwarenessContext(-2)
             # Any other version of windows should use SetProcessDPIAware()
             else:
-                user32.SetProcessDPIAware()
+                windll.user32.SetProcessDPIAware()
 
         self.native.EnableVisualStyles()
         self.native.SetCompatibleTextRenderingDefault(False)
@@ -104,7 +115,7 @@ class App:
                 group=toga.Group.HELP,
             ),
             toga.Command(None, "Preferences", group=toga.Group.FILE),
-            # Quit should always be the last item, in a section on it's own
+            # Quit should always be the last item, in a section on its own
             toga.Command(
                 lambda _: self.interface.exit(),
                 "Exit " + self.interface.name,
@@ -122,7 +133,7 @@ class App:
         self._create_app_commands()
 
         # Call user code to populate the main window
-        self.interface.startup()
+        self.interface._startup()
         self.create_menus()
         self.interface.main_window._impl.set_app(self)
 
@@ -157,9 +168,11 @@ class App:
                 self._menu_items[item] = cmd
                 submenu.DropDownItems.Add(item)
 
+        # The menu bar doesn't need to be positioned, because its `Dock` property
+        # defaults to `Top`.
         self.interface.main_window._impl.native.Controls.Add(menubar)
         self.interface.main_window._impl.native.MainMenuStrip = menubar
-        self.interface.main_window.content.refresh()
+        self.interface.main_window._impl.resize_content()
 
     def _submenu(self, group, menubar):
         try:
@@ -225,6 +238,11 @@ class App:
                     print(line)
 
     def run_app(self):
+        # Enable coverage tracing on this non-Python-created thread
+        # (https://github.com/nedbat/coveragepy/issues/686).
+        if threading._trace_hook:
+            sys.settrace(threading._trace_hook)
+
         try:
             self.create()
 
@@ -276,6 +294,9 @@ class App:
             f"About {self.interface.name}", "\n".join(message_parts)
         )
 
+    def beep(self):
+        SystemSounds.Beep.Play()
+
     def exit(self):
         self._is_exiting = True
         self.native.Exit()
@@ -283,26 +304,31 @@ class App:
     def set_main_window(self, window):
         self.app_context.MainForm = window._impl.native
 
-    def set_on_exit(self, value):
-        pass
+    def get_current_window(self):
+        for window in self.interface.windows:
+            if WinForms.Form.ActiveForm == window._impl.native:
+                return window._impl.native
 
-    def current_window(self):
-        self.interface.factory.not_implemented("App.current_window()")
+    def set_current_window(self, window):
+        window._impl.native.Activate()
 
     def enter_full_screen(self, windows):
-        self.interface.factory.not_implemented("App.enter_full_screen()")
+        for window in windows:
+            window._impl.set_full_screen(True)
 
     def exit_full_screen(self, windows):
-        self.interface.factory.not_implemented("App.exit_full_screen()")
-
-    def set_cursor(self, value):
-        self.interface.factory.not_implemented("App.set_cursor()")
+        for window in windows:
+            window._impl.set_full_screen(False)
 
     def show_cursor(self):
-        self.interface.factory.not_implemented("App.show_cursor()")
+        if not self._cursor_visible:
+            WinForms.Cursor.Show()
+        self._cursor_visible = True
 
     def hide_cursor(self):
-        self.interface.factory.not_implemented("App.hide_cursor()")
+        if self._cursor_visible:
+            WinForms.Cursor.Hide()
+        self._cursor_visible = False
 
 
 class DocumentApp(App):

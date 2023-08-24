@@ -3,15 +3,14 @@ from .base import Widget
 
 class Button(Widget):
     def create(self):
-        self.native = self._create_native_widget(
-            "button",
-            classes=["btn-block"],
-        )
+        self.native = self._create_native_widget("sl-button")
         self.native.onclick = self.dom_onclick
 
     def dom_onclick(self, event):
-        if self.interface.on_press:
-            self.interface.on_press(self.interface)
+        self.interface.on_press(None)
+
+    def get_text(self):
+        return self.native.innerHTML
 
     def set_text(self, text):
         self.native.innerHTML = text
@@ -20,9 +19,6 @@ class Button(Widget):
         self.native.disabled = not value
 
     def set_background_color(self, value):
-        pass
-
-    def set_on_press(self, handler):
         pass
 
     def rehint(self):

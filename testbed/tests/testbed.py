@@ -1,3 +1,4 @@
+import errno
 import os
 import sys
 import tempfile
@@ -12,25 +13,28 @@ import pytest
 from testbed.app import main
 
 
-def run_tests(app, cov):
+def run_tests(app, cov, args, report_coverage, run_slow):
     try:
+        # Control the run speed of the
+        app.run_slow = run_slow
+
         project_path = Path(__file__).parent.parent
         os.chdir(project_path)
+
         app.returncode = pytest.main(
             [
                 # Output formatting
                 "-vv",
                 "--no-header",
                 "--tb=native",
-                "-rP",  # Show stdout from all tests, even if they passed.
                 "--color=no",
                 # Run all async tests and fixtures using pytest-asyncio.
                 "--asyncio-mode=auto",
                 # Override the cache directory to be somewhere known writable
                 "-o",
                 f"cache_dir={tempfile.gettempdir()}/.pytest_cache",
-                project_path / "tests",
             ]
+            + args
         )
 
         # WORKAROUND: On Android, the main thread where coverage has been started
@@ -51,15 +55,22 @@ def run_tests(app, cov):
         # Only print a coverage report if the test suite passed.
         if app.returncode == 0:
             cov.stop()
-            total = cov.report(
-                precision=1,
-                skip_covered=True,
-                show_missing=True,
-            )
-            if total < 100.0:
-                print("Test coverage is incomplete")
-                # Uncomment the next line to enforce test coverage
-                # TODO: app.returncode = 1
+            if report_coverage:
+                # Exclude some patterns of lines that can't have coverage
+                cov.exclude("pragma: no cover")
+                cov.exclude("@(abc\\.)?abstractmethod")
+                cov.exclude("NotImplementedError")
+                cov.exclude("\\.not_implemented\\(")
+
+                total = cov.report(
+                    precision=1,
+                    skip_covered=True,
+                    show_missing=True,
+                )
+                if total < 100.0:
+                    print("Test coverage is incomplete")
+                    # Uncomment the next line to enforce test coverage
+                    # TODO: app.returncode = 1
     except BaseException:
         traceback.print_exc()
         app.returncode = 1
@@ -85,6 +96,15 @@ if __name__ == "__main__":
                 "win32": "toga_winforms",
             }.get(sys.platform)
 
+    if toga_backend == "toga_android":
+        # Prevent the log being cluttered with "avc: denied" messages
+        # (https://github.com/beeware/toga/issues/1962).
+        def get_terminal_size(*args, **kwargs):
+            error = errno.ENOTTY
+            raise OSError(error, os.strerror(error))
+
+        os.get_terminal_size = get_terminal_size
+
     # Start coverage tracking.
     # This needs to happen in the main thread, before the app has been created
     cov = coverage.Coverage(
@@ -97,7 +117,36 @@ if __name__ == "__main__":
 
     # Create the test app, starting the test suite as a background task
     app = main()
-    thread = Thread(target=partial(run_tests, app, cov))
+
+    # Determine pytest arguments
+    args = sys.argv[1:]
+
+    # If `--slow` is in the arguments, run the test suite in slow mode
+    try:
+        args.remove("--slow")
+        args.append("-s")
+        run_slow = True
+    except ValueError:
+        run_slow = False
+
+    # If there are no other specified arguments, default to running the whole suite.
+    # Only show coverage if we're running the full suite.
+    if len(args) == 0:
+        args = ["tests"]
+        report_coverage = True
+    else:
+        report_coverage = False
+
+    thread = Thread(
+        target=partial(
+            run_tests,
+            app=app,
+            cov=cov,
+            args=args,
+            run_slow=run_slow,
+            report_coverage=report_coverage,
+        )
+    )
     app.add_background_task(lambda app, *kwargs: thread.start())
 
     # Add an on_exit handler that will terminate the test suite.

@@ -3,7 +3,6 @@ from travertino.size import at_least
 from ..libs.activity import MainActivity
 from ..libs.android import R__attr
 from ..libs.android.graphics import Typeface
-from ..libs.android.util import TypedValue
 from ..libs.android.view import Gravity, OnClickListener, View__MeasureSpec
 from ..libs.android.widget import (
     HorizontalScrollView,
@@ -125,12 +124,15 @@ class Table(Widget):
             text_view = TextView(MainActivity.singletonThis)
             text_view.setText(self.interface.headings[col_index])
             if self._font_impl:
-                text_view.setTextSize(
-                    TypedValue.COMPLEX_UNIT_SP, self._font_impl.get_size()
+                self._font_impl.apply(
+                    text_view, text_view.getTextSize(), text_view.getTypeface()
                 )
-                text_view.setTypeface(self._font_impl.get_typeface(), Typeface.BOLD)
-            else:
-                text_view.setTypeface(text_view.getTypeface(), Typeface.BOLD)
+            text_view.setTypeface(
+                Typeface.create(
+                    text_view.getTypeface(),
+                    text_view.getTypeface().getStyle() | Typeface.BOLD,
+                )
+            )
             text_view_params = TableRow__Layoutparams(
                 TableRow__Layoutparams.MATCH_PARENT, TableRow__Layoutparams.WRAP_CONTENT
             )
@@ -155,11 +157,8 @@ class Table(Widget):
             text_view = TextView(MainActivity.singletonThis)
             text_view.setText(self.get_data_value(row_index, col_index))
             if self._font_impl:
-                text_view.setTextSize(
-                    TypedValue.COMPLEX_UNIT_SP, self._font_impl.get_size()
-                )
-                text_view.setTypeface(
-                    self._font_impl.get_typeface(), self._font_impl.get_style()
+                self._font_impl.apply(
+                    text_view, text_view.getTextSize(), text_view.getTypeface()
                 )
             text_view_params = TableRow__Layoutparams(
                 TableRow__Layoutparams.MATCH_PARENT, TableRow__Layoutparams.WRAP_CONTENT
@@ -174,7 +173,11 @@ class Table(Widget):
         if self.interface.data is None or self.interface._accessors is None:
             return None
         row_object = self.interface.data[row_index]
-        value = getattr(row_object, self.interface._accessors[col_index])
+        value = getattr(
+            row_object,
+            self.interface._accessors[col_index],
+            self.interface.missing_value,
+        )
         return value
 
     def get_selection(self):
@@ -221,17 +224,11 @@ class Table(Widget):
         self._deleted_column = None
 
     def set_font(self, font):
-        if font:
-            self._font_impl = font._impl
+        self._font_impl = font._impl
         if self.interface.data is not None:
             self.change_source(self.interface.data)
 
     def rehint(self):
-        # Android can crash when rendering some widgets until
-        # they have their layout params set. Guard for that case.
-        if not self.native.getLayoutParams():
-            return
-
         self.native.measure(
             View__MeasureSpec.UNSPECIFIED,
             View__MeasureSpec.UNSPECIFIED,

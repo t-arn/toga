@@ -1,28 +1,29 @@
 import math
 
-from travertino.colors import WHITE
-
-from toga.widgets.canvas import Context, FillRule
-from toga_winforms.colors import native_color
-from toga_winforms.libs import (
+import System.Windows.Forms as WinForms
+from System.Drawing import (
     Bitmap,
     Drawing2D,
-    FillMode,
-    GraphicsPath,
-    ImageFormat,
-    Matrix,
-    MemoryStream,
     Pen,
     PointF,
     Rectangle,
     RectangleF,
     SolidBrush,
     StringFormat,
-    WinForms,
-    win_font_family,
 )
+from System.Drawing.Drawing2D import (
+    FillMode,
+    GraphicsPath,
+    Matrix,
+)
+from System.Drawing.Imaging import ImageFormat
+from System.IO import MemoryStream
+from travertino.colors import WHITE
 
-from ..libs.fonts import win_font_style
+from toga.widgets.canvas import Context, FillRule
+from toga_winforms.colors import native_color
+from toga_winforms.libs.fonts import win_font_family, win_font_style
+
 from .box import Box
 
 
@@ -95,8 +96,8 @@ class Canvas(Box):
         self.interface._draw(self, draw_context=context)
 
     def winforms_resize(self, *args):
-        """Called on widget resize, and calls the handler set on the interface,
-        if any."""
+        """Called on widget resize, and calls the handler set on the interface, if
+        any."""
         if self.interface.on_resize:
             self.interface.on_resize(self.interface)
 
@@ -337,4 +338,4 @@ class Canvas(Box):
         return stream.ToArray()
 
     def _points_to_pixels(self, points):
-        return points * 72 / self.container.viewport.dpi
+        return points * 72 / self.container.dpi

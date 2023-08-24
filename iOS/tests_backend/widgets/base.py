@@ -1,4 +1,9 @@
-from pytest import skip
+from rubicon.objc import ObjCClass
+
+from toga_iOS.libs import UIApplication
+
+from ..probe import BaseProbe
+from .properties import toga_color
 
 # From UIControl.h
 UIControlEventTouchDown = 1 << 0
@@ -28,31 +33,49 @@ UIControlEventSystemReserved = 0xF0000000  # range reserved for internal framewo
 UIControlEventAllEvents = 0xFFFFFFFF
 
 
-class SimpleProbe:
+CATransaction = ObjCClass("CATransaction")
+
+
+class SimpleProbe(BaseProbe):
     def __init__(self, widget):
+        super().__init__()
+        self.app = widget.app
         self.widget = widget
+        self.impl = widget._impl
         self.native = widget._impl.native
         assert isinstance(self.native, self.native_class)
 
     def assert_container(self, container):
-        container_native = container._impl.native
+        assert container._impl.container == self.impl.container
+
+        container_native = container._impl.container.native
         for control in container_native.subviews():
             if control == self.native:
                 break
         else:
             raise ValueError(f"cannot find {self.native} in {container_native}")
 
-    async def redraw(self):
+    def assert_not_contained(self):
+        assert self.widget._impl.container is None
+        assert self.native.superview() is None
+
+    def assert_alignment(self, expected):
+        assert self.alignment == expected
+
+    async def redraw(self, message=None, delay=None):
         """Request a redraw of the app, waiting until that redraw has completed."""
-        # Refresh the layout
-        self.widget.window.content.refresh()
-        # Force a repaint
-        #        self.widget.window.content._impl.native.layer.setNeedsDisplay_(True)
+        # Force a widget repaint
         self.widget.window.content._impl.native.layer.displayIfNeeded()
+
+        # Flush CoreAnimation; this ensures all animations are complete
+        # and all constraints have been evaluated.
+        CATransaction.flush()
+
+        await super().redraw(message=message, delay=delay)
 
     @property
     def enabled(self):
-        return self.native.enabled
+        return self.native.isEnabled()
 
     @property
     def hidden(self):
@@ -64,8 +87,77 @@ class SimpleProbe:
 
     @property
     def height(self):
-        return self.native.frame.size.height
+        height = self.native.frame.size.height
+        # If the widget is the top level container, the frame height will
+        # include the allocation for the app titlebar.
+        if self.impl.container is None:
+            height = height - self.impl.viewport.top_offset
+        return height
 
-    def press(self):
-        skip("Can't simulate button presses yet")
-        # ?? self.native.sendActionsForControlEvents(UIControlEventTouchUpInside)
+    @property
+    def shrink_on_resize(self):
+        return True
+
+    def assert_layout(self, size, position):
+        # Widget is contained and in a window.
+        assert self.widget._impl.container is not None
+        assert self.native.superview() is not None
+
+        # size and position is as expected.
+        assert (self.native.frame.size.width, self.native.frame.size.height) == size
+
+        # Allow for the status bar and navigation bar in vertical position
+        statusbar_frame = UIApplication.sharedApplication.statusBarFrame
+        nav_controller = self.widget.window._impl.native.rootViewController
+        navbar_frame = nav_controller.navigationBar.frame
+        offset = statusbar_frame.size.height + navbar_frame.size.height
+        assert (
+            self.native.frame.origin.x,
+            self.native.frame.origin.y - offset,
+        ) == position
+
+    def assert_width(self, min_width, max_width):
+        assert (
+            min_width <= self.width <= max_width
+        ), f"Width ({self.width}) not in range ({min_width}, {max_width})"
+
+    def assert_height(self, min_height, max_height):
+        assert (
+            min_height <= self.height <= max_height
+        ), f"Height ({self.height}) not in range ({min_height}, {max_height})"
+
+    @property
+    def background_color(self):
+        return toga_color(self.native.backgroundColor)
+
+    async def press(self):
+        self.native.sendActionsForControlEvents(UIControlEventTouchDown)
+
+    @property
+    def is_hidden(self):
+        return self.native.isHidden()
+
+    @property
+    def has_focus(self):
+        return self.native.isFirstResponder
+
+    def type_return(self):
+        self.native.insertText("\n")
+
+    def _prevalidate_input(self, char):
+        return True
+
+    async def type_character(self, char):
+        if char == "<esc>":
+            # There's no analog of esc on iOS
+            pass
+        elif char == "\n":
+            self.type_return()
+        else:
+            # Perform any prevalidation that is required. If the input isn't
+            # valid, do a dummy "empty" insertion.
+            valid = self._prevalidate_input(char)
+            if valid:
+                self.native.insertText(char)
+            else:
+                self.native.insertText("")

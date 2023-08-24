@@ -3,6 +3,7 @@ import asyncio
 from rubicon.java import android_events
 
 import toga
+from android.media import RingtoneManager
 from toga.command import Group
 
 from .libs.activity import IPythonApp, MainActivity
@@ -168,7 +169,7 @@ class TogaApp(IPythonApp):
     def onRestoreInstanceState(self, savedInstanceState):
         print("Toga app: onRestoreInstanceState")
         self._impl.interface.onRestoreInstanceState(savedInstanceState)
-        
+
     @property
     def native(self):
         # We access `MainActivity.singletonThis` freshly each time, rather than
@@ -195,7 +196,7 @@ class App:
         # the app's `.native` is the listener's native Java class.
         self._listener = TogaApp(self)
         # Call user code to populate the main window
-        self.interface.startup()
+        self.interface._startup()
 
     def open_document(self, fileURL):
         print("Can't open document %s (yet)" % fileURL)
@@ -214,10 +215,14 @@ class App:
     def show_about_dialog(self):
         self.interface.factory.not_implemented("App.show_about_dialog()")
 
-    def exit(self):
-        pass
+    def beep(self):
+        uri = RingtoneManager.getActualDefaultRingtoneUri(
+            self.native.getApplicationContext(), RingtoneManager.TYPE_NOTIFICATION
+        )
+        ringtone = RingtoneManager.getRingtone(self.native.getApplicationContext(), uri)
+        ringtone.play()
 
-    def set_on_exit(self, value):
+    def exit(self):
         pass
 
     async def intent_result(self, intent):
@@ -229,14 +234,21 @@ class App:
         :returns: A Dictionary containing "resultCode" (int) and "resultData" (Intent or None)
         :rtype: dict
         """
-        if not intent.resolveActivity(self.native.getPackageManager()):
+        try:
+            self._listener.last_intent_requestcode += 1
+            code = self._listener.last_intent_requestcode
+
+            result_future = asyncio.Future()
+            self._listener.running_intents[code] = result_future
+
+            self.native.startActivityForResult(intent, code)
+            await result_future
+            return result_future.result()
+        except AttributeError:
             raise RuntimeError("No appropriate Activity found to handle this intent.")
-        self._listener.last_intent_requestcode += 1
-        code = self._listener.last_intent_requestcode
 
-        result_future = asyncio.Future()
-        self._listener.running_intents[code] = result_future
+    def hide_cursor(self):
+        pass
 
-        self.native.startActivityForResult(intent, code)
-        await result_future
-        return result_future.result()
+    def show_cursor(self):
+        pass

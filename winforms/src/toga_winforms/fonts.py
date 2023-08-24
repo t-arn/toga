@@ -1,10 +1,15 @@
+import System.Windows.Forms as WinForms
+from System.Drawing import Font as WinFont
+from System.Drawing.Text import PrivateFontCollection
+from System.IO import FileNotFoundException
+from System.Runtime.InteropServices import ExternalException
+
+import toga
 from toga.fonts import _REGISTERED_FONT_CACHE
-from toga_winforms.libs import WinFont, WinForms, win_font_family
-from toga_winforms.libs.fonts import win_font_size, win_font_style
-from toga_winforms.libs.winforms import (
-    ExternalException,
-    FileNotFoundException,
-    PrivateFontCollection,
+from toga_winforms.libs.fonts import (
+    win_font_family,
+    win_font_size,
+    win_font_style,
 )
 
 _FONT_CACHE = {}
@@ -16,7 +21,7 @@ def points_to_pixels(points, dpi):
 
 class Font:
     def __init__(self, interface):
-        self._pfc = None  # this needs to be a instance variable, otherwise we might get Winforms exceptions later
+        self._pfc = None  # this needs to be an instance variable, otherwise we might get Winforms exceptions later
         self.interface = interface
         try:
             font = _FONT_CACHE[self.interface]
@@ -30,7 +35,7 @@ class Font:
             )
             try:
                 font_path = str(
-                    self.interface.factory.paths.app / _REGISTERED_FONT_CACHE[font_key]
+                    toga.App.app.paths.app / _REGISTERED_FONT_CACHE[font_key]
                 )
                 try:
                     self._pfc = PrivateFontCollection()

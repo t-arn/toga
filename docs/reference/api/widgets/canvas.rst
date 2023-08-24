@@ -5,7 +5,7 @@ Canvas
 .. csv-filter:: Availability (:ref:`Key <api-status-key>`)
    :header-rows: 1
    :file: ../../data/widgets_by_platform.csv
-   :included_cols: 4,5,6,7,8,9
+   :included_cols: 4,5,6,7,8,9,10
    :exclude: {0: '(?!(Canvas|Component))'}
 
 The canvas is used for creating a blank widget that you can draw on.
@@ -15,7 +15,7 @@ Usage
 
 Simple usage to draw a black circle on the screen using the arc drawing object:
 
-.. code-block:: Python
+.. code-block:: python
 
     import toga
     canvas = toga.Canvas(style=Pack(flex=1))
@@ -28,7 +28,7 @@ want to modify the parameters of the drawing objects. Here we draw a black
 circle and black rectangle. We then change the size of the circle, move the
 rectangle, and finally delete the rectangle.
 
-.. code-block:: Python
+.. code-block:: python
 
     import toga
     canvas = toga.Canvas(style=Pack(flex=1))
@@ -47,7 +47,7 @@ character on the canvas. First, we create a hero context. Next, we create a
 black circle and a black outlined rectangle for the hero's body. Finally, we
 move the hero by 10 on the x-axis.
 
-.. code-block:: Python
+.. code-block:: python
 
     import toga
     canvas = toga.Canvas(style=Pack(flex=1))
@@ -67,15 +67,11 @@ Reference
 Main Interface
 ^^^^^^^^^^^^^^
 
-.. autoclass:: toga.widgets.canvas.Canvas
-   :members:
-   :undoc-members:
+.. autoclass:: toga.Canvas
    :exclude-members: canvas, add_draw_obj
 
 Lower-Level Classes
 ^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: toga.widgets.canvas
-   :members:
-   :undoc-members:
    :exclude-members: Canvas, add_draw_obj

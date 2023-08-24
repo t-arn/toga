@@ -1,4 +1,5 @@
-from toga.colors import TRANSPARENT
+from abc import abstractmethod
+
 from toga_iOS.colors import native_color
 from toga_iOS.constraints import Constraints
 from toga_iOS.libs import UIColor
@@ -6,18 +7,18 @@ from toga_iOS.libs import UIColor
 
 class Widget:
     def __init__(self, interface):
+        super().__init__()
         self.interface = interface
         self.interface._impl = self
         self._container = None
-        self._viewport = None
         self.constraints = None
         self.native = None
         self.create()
         self.interface.style.reapply()
-        self.set_enabled(self.interface.enabled)
 
+    @abstractmethod
     def create(self):
-        pass
+        ...
 
     def set_app(self, app):
         pass
@@ -32,19 +33,16 @@ class Widget:
     @container.setter
     def container(self, container):
         if self.container:
-            if container:
-                raise RuntimeError("Already have a container")
-            else:
-                # existing container should be removed
-                self.constraints = None
-                self._container = None
-                self.native.removeFromSuperview()
+            assert container is None, f"{self} already has a container"
+
+            # Existing container should be removed
+            self.constraints.container = None
+            self._container = None
+            self.native.removeFromSuperview()
         elif container:
             # setting container
             self._container = container
             self._container.native.addSubview(self.native)
-            if not self.constraints:
-                self.add_constraints()
             self.constraints.container = container
 
         for child in self.interface.children:
@@ -52,44 +50,37 @@ class Widget:
 
         self.rehint()
 
-    @property
-    def viewport(self):
-        return self._viewport
-
-    @viewport.setter
-    def viewport(self, viewport):
-        self._viewport = viewport
+    def get_enabled(self):
+        return self.native.isEnabled()
 
     def set_enabled(self, value):
-        self.native.enabled = self.interface.enabled
+        self.native.setEnabled(value)
+
+    @property
+    def has_focus(self):
+        return self.native.isFirstResponder
 
     def focus(self):
-        self.interface.factory.not_implemented("Widget.focus()")
+        if not self.has_focus:
+            self.native.becomeFirstResponder()
 
     def get_tab_index(self):
-        self.interface.factory.not_implementated("Widget.get_tab_index()")
+        self.interface.factory.not_implemented("Widget.get_tab_index()")
 
     def set_tab_index(self, tab_index):
-        self.interface.factory.not_implementated("Widget.set_tab_index()")
+        self.interface.factory.not_implemented("Widget.set_tab_index()")
 
     # APPLICATOR
 
     def set_bounds(self, x, y, width, height):
-        offset_y = 0
-        if self.container:
-            offset_y = self.container.viewport.top_offset
-        elif self.viewport:
-            offset_y = self.viewport.top_offset
-        self.constraints.update(x, y + offset_y, width, height)
+        # print("SET BOUNDS", self, x, y, width, height, self.container.top_offset)
+        self.constraints.update(x, y + self.container.top_offset, width, height)
 
     def set_alignment(self, alignment):
         pass
 
     def set_hidden(self, hidden):
-        if self.container:
-            for view in self.container._impl.subviews:
-                if view._impl:
-                    view.setHidden(hidden)
+        self.native.setHidden(hidden)
 
     def set_font(self, font):
         # By default, font can't be changed
@@ -105,22 +96,19 @@ class Widget:
 
     # TODO: check if it's safe to make this the default implementation.
     def set_background_color_simple(self, value):
-        if value and (value != TRANSPARENT):
+        if value:
             self.native.backgroundColor = native_color(value)
         else:
             try:
-                self.native.backgroundColor = UIColor.systemBackgroundColor()  # iOS 13+
-            except AttributeError:
+                # systemBackgroundColor() was introduced in iOS 13
+                # We don't test on iOS 12, so mark the other branch as nocover
+                self.native.backgroundColor = UIColor.systemBackgroundColor()
+            except AttributeError:  # pragma: no cover
                 self.native.backgroundColor = UIColor.whiteColor
 
     # INTERFACE
-
     def add_child(self, child):
-        if self.viewport:
-            # we are the the top level UIView
-            child.container = self
-        else:
-            child.container = self.container
+        child.container = self.container
 
     def insert_child(self, index, child):
         self.add_child(child)
@@ -130,10 +118,10 @@ class Widget:
 
     def add_constraints(self):
         self.constraints = Constraints(self)
-        self.native.translatesAutoresizingMaskIntoConstraints = False
 
     def refresh(self):
         self.rehint()
 
+    @abstractmethod
     def rehint(self):
-        pass
+        ...

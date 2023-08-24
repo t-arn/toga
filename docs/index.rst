@@ -2,9 +2,9 @@
 Toga
 ====
 
-Toga is a Python native, OS native, cross platform GUI toolkit. Toga consists of
-a library of base components with a shared interface to simplify
-platform-agnostic GUI development.
+Toga is a Python native, OS native, cross platform GUI toolkit. Toga consists of a
+library of base components with a shared interface to simplify platform-agnostic GUI
+development.
 
 Toga is available on macOS, Windows, Linux (GTK), Android, iOS, and for
 single-page web apps.
@@ -20,7 +20,7 @@ Table of contents
 =================
 
 :ref:`Tutorial <tutorial>`
-------------------------------
+--------------------------
 
 Get started with a hands-on introduction to Toga for beginners.
 
@@ -35,7 +35,7 @@ Guides and recipes for common problems and tasks.
 Explanation and discussion of key topics and concepts.
 
 :ref:`Reference <reference>`
-------------------------------
+----------------------------
 
 Technical reference - commands, modules, classes, methods.
 
@@ -44,14 +44,18 @@ Community
 
 Toga is part of the `BeeWare suite`_. You can talk to the community through:
 
-* `@pybeeware on Twitter <https://twitter.com/pybeeware>`__
+* `@beeware@fosstodon.org on Mastodon`_
+* `Discord`_
+* The Toga `Github Discussions forum`_
 
-* `Discord <https://beeware.org/bee/chat/>`__
+We foster a welcoming and respectful community as described in our
+`BeeWare Community Code of Conduct`_.
 
-* The Toga `Github Discussions forum <https://github.com/beeware/toga/discussions>`__
-
-.. _BeeWare suite: http://beeware.org
-.. _Read The Docs: https://toga.readthedocs.io
+.. _BeeWare suite: https://beeware.org/
+.. _@beeware@fosstodon.org on Mastodon: https://fosstodon.org/@beeware
+.. _Discord: https://beeware.org/bee/chat/
+.. _Github Discussions forum: https://github.com/beeware/toga/discussions
+.. _BeeWare Community Code of Conduct: https://beeware.org/community/behavior/
 
 
 .. toctree::

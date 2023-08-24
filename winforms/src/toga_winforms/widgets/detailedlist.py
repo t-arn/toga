@@ -1,6 +1,5 @@
+import System.Windows.Forms as WinForms
 from travertino.size import at_least
-
-from toga_winforms.libs import WinForms
 
 from .base import Widget
 
@@ -110,10 +109,6 @@ class DetailedList(Widget):
     def set_on_select(self, handler):
         pass
 
-    def set_font(self, font):
-        if font:
-            self.native.Font = font._impl.native
-
     def set_on_double_click(self, handler):
         self.interface.factory.not_implemented("Table.set_on_double_click()")
 
@@ -127,8 +122,8 @@ class DetailedList(Widget):
         self.native.EnsureVisible(row)
 
     def rehint(self):
-        self.interface.intrinsic.width = at_least(self.interface.MIN_WIDTH)
-        self.interface.intrinsic.height = at_least(self.interface.MIN_HEIGHT)
+        self.interface.intrinsic.width = at_least(self.interface._MIN_WIDTH)
+        self.interface.intrinsic.height = at_least(self.interface._MIN_HEIGHT)
 
     def build_item(self, row, index):
         item = WinForms.ListViewItem(row.title)

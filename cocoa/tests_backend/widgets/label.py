@@ -1,4 +1,3 @@
-from toga.colors import TRANSPARENT
 from toga_cocoa.libs import NSTextField
 
 from .base import SimpleProbe
@@ -17,19 +16,13 @@ class LabelProbe(SimpleProbe):
         return toga_color(self.native.textColor)
 
     @property
-    def background_color(self):
-        if self.native.drawsBackground:
-            if self.native.backgroundColor:
-                return toga_color(self.native.backgroundColor)
-            else:
-                return None
-        else:
-            return TRANSPARENT
-
-    @property
     def font(self):
         return toga_font(self.native.font)
 
     @property
     def alignment(self):
         return toga_alignment(self.native.alignment)
+
+    def assert_vertical_alignment(self, expected):
+        # Vertical alignment isn't configurable on NSTextField
+        pass

@@ -25,6 +25,7 @@ class App(LoggedObject):
 
     def create(self):
         self._action("create")
+        self.interface._startup()
 
     @not_required_on("mobile")
     def create_menus(self):
@@ -32,6 +33,7 @@ class App(LoggedObject):
 
     def main_loop(self):
         self._action("main loop")
+        self.create()
 
     def set_main_window(self, window):
         self._set_value("main_window", window)
@@ -39,15 +41,19 @@ class App(LoggedObject):
     def show_about_dialog(self):
         self._action("show_about_dialog")
 
+    def beep(self):
+        self._action("beep")
+
     def exit(self):
         self._action("exit")
 
-    def set_on_exit(self, value):
-        self._set_value("on_exit", value)
+    @not_required_on("mobile")
+    def get_current_window(self):
+        self._action("get_current_window")
 
     @not_required_on("mobile")
-    def current_window(self):
-        self._action("current_window")
+    def set_current_window(self):
+        self._action("set_current_window")
 
     @not_required_on("mobile")
     def enter_full_screen(self, windows):
