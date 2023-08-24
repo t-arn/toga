@@ -112,6 +112,7 @@ GDK_KEYS = {
     Gdk.KEY_semicolon: Key.SEMICOLON,
     Gdk.KEY_apostrophe: Key.QUOTE,
     Gdk.KEY_Return: Key.ENTER,
+    Gdk.KEY_space: Key.SPACE,
     Gdk.KEY_colon: Key.COLON,
     Gdk.KEY_quotedbl: Key.DOUBLE_QUOTE,
     Gdk.KEY_comma: Key.COMMA,
@@ -129,6 +130,7 @@ GDK_KEYS = {
     Gdk.KEY_Right: Key.RIGHT,
     Gdk.KEY_Up: Key.UP,
     Gdk.KEY_Down: Key.DOWN,
+    Gdk.KEY_KP_Enter: Key.NUMPAD_ENTER,
 }
 
 # TODO: Confirm these codes are all correct - especially the special keys.

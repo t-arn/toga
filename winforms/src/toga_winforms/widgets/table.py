@@ -1,6 +1,5 @@
+import System.Windows.Forms as WinForms
 from travertino.size import at_least
-
-from toga_winforms.libs import WinForms
 
 from .base import Widget
 
@@ -23,7 +22,7 @@ class Table(Widget):
         self.native.DoubleBuffered = True
         self.native.VirtualMode = True
         self.native.Columns.AddRange(dataColumn)
-        
+
         for i, c in enumerate(self.native.Columns):
             width = self.interface._col_widths.get(i, None)
             if width is not None:
@@ -152,10 +151,6 @@ class Table(Widget):
     def set_on_select(self, handler):
         pass
 
-    def set_font(self, font):
-        if font:
-            self.native.Font = font._impl.native
-
     def set_on_double_click(self, handler):
         pass
 
@@ -163,8 +158,8 @@ class Table(Widget):
         self.native.EnsureVisible(row)
 
     def rehint(self):
-        self.interface.intrinsic.width = at_least(self.interface.MIN_WIDTH)
-        self.interface.intrinsic.height = at_least(self.interface.MIN_HEIGHT)
+        self.interface.intrinsic.width = at_least(self.interface._MIN_WIDTH)
+        self.interface.intrinsic.height = at_least(self.interface._MIN_HEIGHT)
 
     def remove_column(self, accessor):
         self.native.Columns.RemoveByKey(accessor)

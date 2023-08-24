@@ -1,68 +1,51 @@
 Box
 ===
 
+A generic container for other widgets. Used to construct layouts.
+
 .. rst-class:: widget-support
 .. csv-filter:: Availability (:ref:`Key <api-status-key>`)
    :header-rows: 1
    :file: ../../data/widgets_by_platform.csv
-   :included_cols: 4,5,6,7,8,9
+   :included_cols: 4,5,6,7,8,9,10
    :exclude: {0: '(?!(Box|Component))'}
-
-The box is a generic container for widgets, allowing you to construct layouts.
 
 Usage
 -----
 
-A box can be instantiated with no children and the children added later:
+An empty Box can be constructed without any children, with children added to the
+box after construction:
 
-.. code-block:: Python
-
-    import toga
-
-    box = toga.Box('box1')
-
-    button = toga.Button('Hello world', on_press=button_handler)
-    box.add(button)
-
-To create boxes within boxes, use the children argument:
-
-.. code-block:: Python
+.. code-block:: python
 
     import toga
 
-    box_a = toga.Box('box_a')
-    box_b = toga.Box('box_b')
+    box = toga.Box()
 
-    box = toga.Box('box', children=[box_a, box_b])
+    label1 = toga.Label('Hello')
+    label2 = toga.Label('World')
 
-Box Styling
------------
+    box.add(label1)
+    box.add(label2)
 
-Styling of boxes can be done during instantiation of the Box:
+Alternatively, children can be specified at the time the box is constructed:
 
-.. code-block:: Python
-
-    import toga
-    from toga.style import Pack
-    from toga.style.pack import COLUMN
-
-    box = toga.Box(id='box', style=Pack(direction=COLUMN, padding_top=10))
-
-Styles can be also be updated on an existing instance:
-
-.. code-block:: Python
+.. code-block:: python
 
     import toga
-    from toga.style import Pack
-    from toga.style.pack import COLUMN
 
-    box = toga.Box(id='box', style=Pack(direction=COLUMN))
+    label1 = toga.Label('Hello')
+    label2 = toga.Label('World')
 
-    box.style.update(padding_top=10)
+    box = toga.Box(children=[label1, label2])
+
+In most apps, a layout is constructed by building a tree of boxes inside boxes, with
+concrete widgets (such as :class:`~toga.Label` or :class:`~toga.Button`) forming the
+leaf nodes of the tree. Style directives can be applied to enforce padding around the
+outside of the box, direction of child stacking inside the box, and background color of
+the box.
 
 Reference
 ---------
 
-.. autoclass:: toga.widgets.box.Box
-   :members:
-   :undoc-members:
+.. autoclass:: toga.Box

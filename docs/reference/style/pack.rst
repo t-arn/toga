@@ -30,7 +30,7 @@ Pack style properties
 **Initial value:** ``pack``
 
 Used to define the how to display the element. A value of ``pack`` will apply
-the pack layout algorithm to this node and its descendents. A value of
+the pack layout algorithm to this node and its descendants. A value of
 ``none`` removes the element from the layout entirely. Space will be allocated
 for the element as if it were there, but the element itself will not be
 visible.
@@ -38,13 +38,19 @@ visible.
 ``visibility``
 --------------
 
-**Values:** ``hidden`` | ``visible`` | ``none``
+**Values:** ``hidden`` | ``visible``
 
 **Initial value:** ``visible``
 
-Used to define whether the element should be drawn. A value of ``visible``
-means the element will be displayed. A value of ``none`` removes the element,
-but still allocates space for the element as if it were in the element tree.
+Used to define whether the element should be drawn. A value of ``visible`` means
+the element will be displayed. A value of ``hidden`` removes the element from
+view, but allocates space for the element as if it were still in the layout.
+
+Any children of a hidden element are implicitly removed from view.
+
+If a previously hidden element is made visible, any children of the element with
+a visibility of ``hidden`` will remain hidden. Any descendants of the hidden
+child will also remain hidden, regardless of their visibility.
 
 ``direction``
 -------------
@@ -285,6 +291,9 @@ The mapping that can be used to establish the reference implementation is:
   the HTML reference document. The rendering area of the browser window becomes
   the view area that Pack will fill.
 
+* Images map to ``<img>`` elements. The ``<img>`` element has an additional style of
+  ``object-fit: contain`` unless *both* ``height`` and ``width`` are defined.
+
 * All other elements in the DOM tree are mapped to ``<div>`` elements.
 
 * The following Pack declarations can be mapped to equivalent CSS declarations:
@@ -305,15 +314,17 @@ The mapping that can be used to establish the reference implementation is:
    ``display: pack``             ``display: flex``
    ``flex: <int>``               If ``direction = row`` and ``width`` is set,
                                  or ``direction = column`` and ``height`` is set,
-                                 ignore. Otherwise, ``flex: <int> 0 0``.
+                                 ignore. Otherwise, ``flex: <int> 0 auto``.
    ``font_size: <int>``          ``font-size: <int>pt``
-   ``height: <int>``             ``height: <int>px``
+   ``height: <value>``           ``height: <value>px`` if value is an integer;
+                                 ``height: auto`` if value is ``none``.
    ``padding_top: <int>``        ``margin-top: <int>px``
    ``padding_bottom: <int>``     ``margin-bottom: <int>px``
    ``padding_left: <int>``       ``margin-left: <int>px``
    ``padding_right: <int>``      ``margin-right: <int>px``
    ``text_direction: <str>``     ``direction: <str>``
-   ``width: <int>``              ``width: <int>px``
+   ``width: <value>``            ``width: <value>px`` if value is an integer;
+                                 ``width: auto`` if value is ``none``.
    ============================= ===================================================
 
 * All other Pack declarations should be used as-is as CSS declarations, with

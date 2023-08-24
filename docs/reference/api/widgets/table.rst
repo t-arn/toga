@@ -5,7 +5,7 @@ Table
 .. csv-filter:: Availability (:ref:`Key <api-status-key>`)
    :header-rows: 1
    :file: ../../data/widgets_by_platform.csv
-   :included_cols: 4,5,6,7,8,9
+   :included_cols: 4,5,6,7,8,9,10
    :exclude: {0: '(?!^(Table|Component)$)'}
 
 The table widget is a widget for displaying tabular data. It can be instantiated with the list of headings and then data rows
@@ -17,7 +17,7 @@ can be added.
 Usage
 -----
 
-.. code-block:: Python
+.. code-block:: python
 
     import toga
 
@@ -29,9 +29,29 @@ Usage
     # Insert to row 2
     table.data.insert(2, 'Value 1', 'Value 2')
 
+        Examples:
+            >>> headings = ['Head 1', 'Head 2', 'Head 3']
+            >>> data = []
+            >>> table = Table(headings, data=data)
+
+            Data can be in several forms. A list of dictionaries, where the keys match
+            the heading names:
+
+            >>> data = [{'head_1': 'value 1', 'head_2': 'value 2', 'head_3': 'value3'}),
+            >>>         {'head_1': 'value 1', 'head_2': 'value 2', 'head_3': 'value3'}]
+
+            A list of lists. These will be mapped to the headings in order:
+
+            >>> data = [('value 1', 'value 2', 'value3'),
+            >>>         ('value 1', 'value 2', 'value3')]
+
+            A list of values. This is only accepted if there is a single heading.
+
+            >>> data = ['item 1', 'item 2', 'item 3']
+        """
+
+
 Reference
 ---------
 
-.. autoclass:: toga.widgets.table.Table
-   :members:
-   :undoc-members:
+.. autoclass:: toga.Table

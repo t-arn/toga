@@ -87,9 +87,6 @@ class Window:
             self.toolbar_items[cmd] = item_impl
             self.toolbar_native.insert(item_impl, -1)
 
-    def clear_content(self):
-        pass
-
     def set_content(self, widget):
         # Set the new widget to be the container's content
         self.container.content = widget
@@ -106,7 +103,7 @@ class Window:
     def gtk_delete_event(self, widget, data):
         if self._is_closing:
             should_close = True
-        elif self.interface.on_close:
+        elif self.interface.on_close._raw:
             should_close = self.interface.on_close(self.interface.app)
         else:
             should_close = True
@@ -118,23 +115,20 @@ class Window:
         # closing the window) should be performed.
         return not should_close
 
-    def set_on_close(self, handler):
-        pass
-
     def close(self):
         self._is_closing = True
         self.native.close()
 
     def get_position(self):
         pos = self.native.get_position()
-        return (pos.root_x, pos.root_y)
+        return pos.root_x, pos.root_y
 
     def set_position(self, position):
         self.native.move(position[0], position[1])
 
     def get_size(self):
         size = self.native.get_size()
-        return (size.width, size.height)
+        return size.width, size.height
 
     def set_size(self, size):
         self.native.resize(size[0], size[1])

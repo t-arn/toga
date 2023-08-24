@@ -1,4 +1,6 @@
-import warnings
+from __future__ import annotations
+
+from typing import Literal
 
 from .base import Widget
 
@@ -8,57 +10,62 @@ class ActivityIndicator(Widget):
         self,
         id=None,
         style=None,
-        running=False,
-        factory=None,  # DEPRECATED !
+        running: bool = False,
     ):
-        """
+        """Create a new ActivityIndicator widget.
 
-        Args:
-            id (str):  An identifier for this widget.
-            style (:obj:`Style`): An optional style object. If no style is provided then a
-                new one will be created for the widget.
-            running (bool):  Set the initial running mode. Defaults to False
-            hide_when_stopped (bool):  Hide the indicator when not running. Defaults to
-                True.
+        :param id: The ID for the widget.
+        :param style: A style object. If no style is provided, a default style
+            will be applied to the widget.
+        :param running: Describes whether the indicator is running at the
+            time it is created.
         """
-        ######################################################################
-        # 2022-09: Backwards compatibility
-        ######################################################################
-        # factory no longer used
-        if factory:
-            warnings.warn("The factory argument is no longer used.", DeprecationWarning)
-        ######################################################################
-        # End backwards compatibility.
-        ######################################################################
         super().__init__(id=id, style=style)
-
-        self._is_running = False
 
         self._impl = self.factory.ActivityIndicator(interface=self)
 
         if running:
             self.start()
-        else:
-            self.stop()
 
     @property
-    def is_running(self):
-        """Use ``start()`` and ``stop()`` to change the running state.
+    def enabled(self) -> Literal[True]:
+        """Is the widget currently enabled? i.e., can the user interact with the widget?
 
-        Returns:
-            True if this activity indicator is running
-            False otherwise
+        ActivityIndicator widgets cannot be disabled; this property will always return
+        True; any attempt to modify it will be ignored.
         """
-        return self._is_running
+        return True
 
-    def start(self):
-        """Start this activity indicator."""
+    @enabled.setter
+    def enabled(self, value: bool) -> None:
+        pass
+
+    def focus(self) -> None:
+        "No-op; ActivityIndicator cannot accept input focus"
+        pass
+
+    @property
+    def is_running(self) -> bool:
+        """Determine if the activity indicator is currently running.
+
+        Use ``start()`` and ``stop()`` to change the running state.
+
+        True if this activity indicator is running; False otherwise.
+        """
+        return self._impl.is_running()
+
+    def start(self) -> None:
+        """Start the activity indicator.
+
+        If the activity indicator is already started, this is a no-op.
+        """
         if not self.is_running:
             self._impl.start()
-        self._is_running = True
 
-    def stop(self):
-        """Stop this activity indicator (if not already stopped)."""
+    def stop(self) -> None:
+        """Stop the activity indicator.
+
+        If the activity indicator is already stopped, this is a no-op.
+        """
         if self.is_running:
             self._impl.stop()
-        self._is_running = False

@@ -1,12 +1,14 @@
 from java import jclass
-from pytest import skip
+
+from android.os import Build
 
 from .base import SimpleProbe
-from .properties import toga_color
+from .properties import toga_alignment, toga_color, toga_font
 
 
 class LabelProbe(SimpleProbe):
     native_class = jclass("android.widget.TextView")
+    supports_justify = True
 
     @property
     def color(self):
@@ -18,8 +20,15 @@ class LabelProbe(SimpleProbe):
 
     @property
     def font(self):
-        skip("Font probe not implemented")
+        return toga_font(
+            self.native.getTypeface(),
+            self.native.getTextSize(),
+            self.native.getResources(),
+        )
 
     @property
     def alignment(self):
-        skip("Alignment probe not implemented")
+        justification_mode = (
+            None if Build.VERSION.SDK_INT < 26 else self.native.getJustificationMode()
+        )
+        return toga_alignment(self.native.getGravity(), justification_mode)

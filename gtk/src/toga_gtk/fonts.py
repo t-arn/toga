@@ -1,4 +1,11 @@
-from toga.constants import BOLD, ITALIC, OBLIQUE, SMALL_CAPS, SYSTEM
+from toga.constants import (
+    BOLD,
+    ITALIC,
+    OBLIQUE,
+    SMALL_CAPS,
+    SYSTEM,
+    SYSTEM_DEFAULT_FONT_SIZE,
+)
 
 from .libs import Pango
 
@@ -27,8 +34,9 @@ class Font:
 
             font.set_family(family)
 
-            # Set font size
-            font.set_size(self.interface.size * Pango.SCALE)
+            # If this is a non-default font size, set the font size
+            if self.interface.size != SYSTEM_DEFAULT_FONT_SIZE:
+                font.set_size(self.interface.size * Pango.SCALE)
 
             # Set font style
             if self.interface.style == ITALIC:
@@ -47,17 +55,3 @@ class Font:
             _FONT_CACHE[self.interface] = font
 
         self.native = font
-
-    def measure(self, text, widget, tight=False):
-        layout = widget.create_pango_layout(text)
-
-        layout.set_font_description(self.native)
-        ink, logical = layout.get_extents()
-        if tight:
-            width = (ink.width / Pango.SCALE) - (ink.width * 0.2) / Pango.SCALE
-            height = ink.height / Pango.SCALE
-        else:
-            width = (logical.width / Pango.SCALE) - (logical.width * 0.2) / Pango.SCALE
-            height = logical.height / Pango.SCALE
-
-        return width, height

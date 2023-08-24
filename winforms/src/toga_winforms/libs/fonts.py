@@ -1,3 +1,12 @@
+import System.Windows.Forms as WinForms
+from System import ArgumentException
+from System.Drawing import (
+    ContentAlignment,
+    FontFamily,
+    FontStyle,
+    SystemFonts,
+)
+
 from toga.constants import CENTER, JUSTIFY, LEFT, RIGHT
 from toga.fonts import (
     CURSIVE,
@@ -10,22 +19,13 @@ from toga.fonts import (
     SYSTEM_DEFAULT_FONT_SIZE,
 )
 
-from .winforms import (
-    ArgumentException,
-    ContentAlignment,
-    FontFamily,
-    FontStyle,
-    SystemFonts,
-    WinForms,
-)
-
 
 def TextAlignment(value):
     return {
-        LEFT: ContentAlignment.MiddleLeft,
-        RIGHT: ContentAlignment.MiddleRight,
-        CENTER: ContentAlignment.MiddleCenter,
-        JUSTIFY: ContentAlignment.MiddleLeft,
+        LEFT: ContentAlignment.TopLeft,
+        RIGHT: ContentAlignment.TopRight,
+        CENTER: ContentAlignment.TopCenter,
+        JUSTIFY: ContentAlignment.TopLeft,
     }[value]
 
 

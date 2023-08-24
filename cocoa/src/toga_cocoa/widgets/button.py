@@ -2,6 +2,7 @@ from travertino.size import at_least
 
 from toga.colors import TRANSPARENT
 from toga.fonts import SYSTEM_DEFAULT_FONT_SIZE
+from toga.style.pack import NONE
 from toga_cocoa.colors import native_color
 from toga_cocoa.libs import (
     SEL,
@@ -21,8 +22,7 @@ class TogaButton(NSButton):
 
     @objc_method
     def onPress_(self, obj) -> None:
-        if self.interface.on_press:
-            self.interface.on_press(self.interface)
+        self.interface.on_press(None)
 
 
 class Button(Widget):
@@ -47,7 +47,7 @@ class Button(Widget):
         # RegularSquare button.
         if (
             self.interface.style.font_size != SYSTEM_DEFAULT_FONT_SIZE
-            or self.interface.style.height
+            or self.interface.style.height != NONE
         ):
             self.native.bezelStyle = NSBezelStyle.RegularSquare
         else:
@@ -66,12 +66,11 @@ class Button(Widget):
         # Button style is sensitive to font changes
         self._set_button_style()
 
-    def set_text(self, text):
-        self.native.title = self.interface.text
+    def get_text(self):
+        return str(self.native.title)
 
-    def set_on_press(self, handler):
-        # No special handling required
-        pass
+    def set_text(self, text):
+        self.native.title = text
 
     def set_background_color(self, color):
         if color == TRANSPARENT or color is None:

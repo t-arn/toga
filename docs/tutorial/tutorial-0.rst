@@ -2,42 +2,36 @@
 Your first Toga app
 ===================
 
-.. include:: /tutorial/tutorial-issues-note.rst
-
 In this example, we're going to build a desktop app with a single
 button, that prints to the console when you press the button.
-
 
 Set up your development environment
 ===================================
 
-Make sure you installed the `Toga prerequisites
-<https://github.com/beeware/toga#prerequisites>`_, such as Python 3 and the
-other libraries. Then create a working directory for your code and change to it.
+If you haven't got Python 3 installed, you can do so via `the official installer
+<https://www.python.org/downloads>`_, or using your operating system's package manager.
 
-If Python 3 is *not* installed, you can do so via `the official installer
-<https://www.python.org/downloads>`_, or via `pyenv
-<https://github.com/pyenv/pyenv#simple-python-version-management-pyenv>`_, as
-described in the `environment page
-<https://beeware.org/contributing/how/first-time/setup>`_.
-
-The recommended way of setting up your development environment for Toga
-is to install a virtual environment, install the required dependencies and
-start coding. To set up a virtual environment, run:
+The recommended way of setting up your development environment for Toga is to install a
+virtual environment, install the required dependencies and start coding. To set up a
+virtual environment, open a fresh terminal session, and run:
 
 .. tabs::
 
   .. group-tab:: macOS
 
-    .. code-block:: bash
+    .. code-block:: console
 
+      $ mkdir toga-tutorial
+      $ cd toga-tutorial
       $ python3 -m venv venv
       $ source venv/bin/activate
 
   .. group-tab:: Linux
 
-    .. code-block:: bash
+    .. code-block:: console
 
+      $ mkdir toga-tutorial
+      $ cd toga-tutorial
       $ python3 -m venv venv
       $ source venv/bin/activate
 
@@ -45,8 +39,10 @@ start coding. To set up a virtual environment, run:
 
     .. code-block:: doscon
 
+      C:\...>mkdir toga-tutorial
+      C:\...>cd toga-tutorial
       C:\...>py -m venv venv
-      C:\...>venv\Scripts\activate.bat
+      C:\...>venv\Scripts\activate
 
 Your prompt should now have a ``(venv)`` prefix in front of it.
 
@@ -56,51 +52,33 @@ Next, install Toga into your virtual environment:
 
   .. group-tab:: macOS
 
-    .. code-block:: bash
+    .. code-block:: console
 
       (venv) $ python -m pip install toga
 
   .. group-tab:: Linux
 
-    Before you install toga, you'll need to install some system packages.
-    These instructions are different on almost every version of Linux; here are
-    some of the common alternatives:
+    Before you install Toga, you'll need to install some system packages.
 
-    .. code-block:: bash
+    .. include:: /reference/platforms/unix-prerequisites.rst
 
-      # Ubuntu 16.04 / Debian 9
-      (venv) $ sudo apt-get update
-      (venv) $ sudo apt-get install python3-dev python3-gi python3-gi-cairo libgirepository1.0-dev libcairo2-dev libpango1.0-dev libwebkitgtk-3.0-0 gir1.2-webkit2-3.0
+    Then, install Toga:
 
-      # Ubuntu 18.04+ / Debian 10+
-      (venv) $ sudo apt-get update
-      (venv) $ sudo apt-get install python3-dev python3-gi python3-gi-cairo libgirepository1.0-dev libcairo2-dev libpango1.0-dev libwebkit2gtk-4.0-37 gir1.2-webkit2-4.0
-
-      # Fedora
-      (venv) $ sudo dnf install pkg-config python3-devel gobject-introspection-devel cairo-devel cairo-gobject-devel pango-devel webkitgtk3
-
-      # Arch / Manjaro
-      (venv) $ sudo pacman -Syu git pkgconf cairo python-cairo pango gobject-introspection gobject-introspection-runtime python-gobject webkit2gtk
-
-    If you're not using one of these, you'll need to work out how to install
-    the developer libraries for python3, cairo, pango, and
-    gobject-introspection (and please let us know so we can improve this
-    documentation!)
-
-    Then, install toga:
-
-    .. code-block:: bash
+    .. code-block:: console
 
       (venv) $ python -m pip install toga
 
+    If you get an error when installing Toga, please ensure that you have fully installed
+    all the platform prerequisites.
+
   .. group-tab:: Windows
+
+    Confirm that your system meets the :ref:`Windows prerequisites
+    <windows-prerequisites>`; then run:
 
     .. code-block:: doscon
 
       (venv) C:\...>python -m pip install toga
-
-If you get other errors, please check that you followed `the prerequisite
-<https://github.com/beeware/toga#prerequisites>`_ instructions.
 
 After a successful installation of Toga you are ready to get coding.
 
@@ -129,7 +107,7 @@ of a simple button press, however, there are no extra arguments::
     def button_handler(widget):
         print("hello")
 
-When the app gets instantiated (in `main()`, discussed below), Toga will create
+When the app gets instantiated (in ``main()``, discussed below), Toga will create
 a window with a menu. We need to provide a method that tells Toga what content
 to display in the window. The method can be named anything, it just needs to
 accept an app instance::
@@ -192,13 +170,13 @@ representing the executable. The app has a name and a unique identifier. The
 identifier is used when registering any app-specific system resources. By
 convention, the identifier is a "reversed domain name". The app also accepts our
 method defining the main window contents. We wrap this creation process into a
-method called `main()`, which returns a new instance of our application::
+method called ``main()``, which returns a new instance of our application::
 
     def main():
         return toga.App('First App', 'org.beeware.helloworld', startup=build)
 
 The entry point for the project then needs to instantiate this entry point
-and start the main app loop. The call to `main_loop()` is a blocking call;
+and start the main app loop. The call to ``main_loop()`` is a blocking call;
 it won't return until you quit the main app::
 
     if __name__ == '__main__':
@@ -219,13 +197,13 @@ Here is the command to run for your platform from your working directory:
 
   .. group-tab:: macOS
 
-    .. code-block:: bash
+    .. code-block:: console
 
       (venv) $ python -m helloworld
 
   .. group-tab:: Linux
 
-    .. code-block:: bash
+    .. code-block:: console
 
       (venv) $ python -m helloworld
 
@@ -251,7 +229,9 @@ Troubleshooting issues
 Occasionally you might run into issues running Toga on your computer.
 
 Before you run the app, you'll need to install toga. Although you *can* install
-toga by just running::
+toga by just running:
+
+.. code-block:: console
 
     $ python -m pip install toga
 
@@ -259,31 +239,10 @@ We strongly suggest that you **don't** do this. We'd suggest creating a `virtual
 environment`_ first, and installing toga in that virtual environment as directed
 at the top of this guide.
 
-.. _virtual environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
+.. _virtual environment: https://docs.python-guide.org/dev/virtualenvs/
 
-.. note:: Minimum versions
+Once you've got Toga installed, you can run your script:
 
-    Toga has some minimum requirements:
-
-    * If you're on macOS, you need to be on 10.10 (Yosemite) or newer.
-
-    * If you're on Linux, you need to have GTK+ 3.10 or newer. This is the
-      version that ships starting with Ubuntu 14.04 and Fedora 20.
-
-    * If you're on Windows, you need to have Windows 10 or newer.
-
-    If these requirements aren't met, Toga either won't work at all, or won't
-    have full functionality.
-
-Once you've got toga installed, you can run your script::
+.. code-block:: console
 
     (venv) $ python -m helloworld
-
-.. note:: ``python -m helloworld`` vs ``python helloworld.py``
-
-    Note the ``-m`` flag and absence of the ``.py`` extension in this command
-    line. If you run ``python helloworld.py``, you may see some errors like::
-
-        NotImplementedError: Application does not define open_document()
-
-    Toga apps must be executed as modules - hence the ``-m`` flag.

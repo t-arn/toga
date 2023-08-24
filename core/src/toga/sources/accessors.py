@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import re
 
 NON_ACCESSOR_CHARS = re.compile(r"[^\w ]")
 WHITESPACE = re.compile(r"\s+")
 
 
-def to_accessor(heading):
+def to_accessor(heading: str) -> str:
     """Convert a human-readable heading into a data attribute accessor.
 
     This won't be infallible; for ambiguous cases, you'll need to manually
@@ -16,7 +18,7 @@ def to_accessor(heading):
         'Heading!' -> 'heading'
 
     Args:
-        heading (``str``): The column heading.
+        heading: The column heading.
 
     Returns:
         the accessor derived from the heading.
@@ -34,9 +36,12 @@ def to_accessor(heading):
     return value
 
 
-def build_accessors(headings, accessors):
-    """Convert a list of headings (with accessor overrides) to a finalised list
-    of accessors.
+def build_accessors(
+    headings: list[str],
+    accessors: list[str | None] | dict[str, str] | None,
+) -> list[str]:
+    """Convert a list of headings (with accessor overrides) to a finalised list of
+    accessors.
 
     Args:
         headings: a list of strings to be used as headings
@@ -50,7 +55,7 @@ def build_accessors(headings, accessors):
          - Otherwise, a final list of ready-to-use accessors.
 
     Returns:
-        A finalized list of accessors.
+        A finalised list of accessors.
     """
     if accessors:
         if isinstance(accessors, dict):

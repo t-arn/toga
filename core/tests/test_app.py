@@ -156,6 +156,10 @@ class AppTests(TestCase):
         for window in self.app.windows:
             self.assertIn(window, test_windows)
 
+    def test_beep(self):
+        self.app.beep()
+        self.assertActionPerformed(self.app, "beep")
+
     def test_add_background_task(self):
         async def test_handler(sender):
             pass
@@ -165,8 +169,23 @@ class AppTests(TestCase):
             self.app,
             "loop:call_soon_threadsafe",
             handler=test_handler,
-            args=(self.app,),
+            args=(None,),
         )
+
+    def test_override_startup(self):
+        class BadApp(toga.App):
+            "A startup method that doesn't assign main window raises an error (#760)"
+
+            def startup(self):
+                # Override startup but don't create a main window
+                pass
+
+        app = BadApp(app_name="bad_app", formal_name="Bad Aoo", app_id="org.beeware")
+        with self.assertRaisesRegex(
+            ValueError,
+            r"Application does not have a main window.",
+        ):
+            app.main_loop()
 
 
 class DocumentAppTests(TestCase):
@@ -187,3 +206,15 @@ class DocumentAppTests(TestCase):
         doc = MagicMock()
         self.app._documents.append(doc)
         self.assertEqual(self.app.documents, [doc])
+
+    def test_override_startup(self):
+        mock = MagicMock()
+
+        class DocApp(toga.DocumentApp):
+            def startup(self):
+                # A document app doesn't have to provide a Main Window.
+                mock()
+
+        app = DocApp(app_name="docapp", formal_name="Doc App", app_id="org.beeware")
+        app.main_loop()
+        mock.assert_called_once()

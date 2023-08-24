@@ -24,8 +24,8 @@ import toga_dummy
 class NoDefault:
     """This utility class to indicate that no argument default exists.
 
-    The use of `None` is not possible because it itself could be a
-    default argument value.
+    The use of `None` is not possible because it itself could be a default argument
+    value.
     """
 
     def __eq__(self, other):
@@ -44,10 +44,10 @@ FunctionArguments = namedtuple(
 
 
 class DefinitionExtractor:
-    """The DefinitionExtractor consumes a .py file and extracts information,
-    with the help of the 'ast' module from it.
+    """The DefinitionExtractor consumes a .py file and extracts information, with the
+    help of the 'ast' module from it.
 
-    Non existing files result in a empty DefinitionExtractor, this means the
+    Non-existing files result in an empty DefinitionExtractor, this means the
     all properties return empty lists or dicts.
 
     Args:
@@ -84,16 +84,18 @@ class DefinitionExtractor:
             if isinstance(node, ast.ClassDef):
                 if self.is_required_for_platform(node):
                     self._classes[node.name] = node  # use the class name as the key
-            elif isinstance(node, ast.Assign):
-                # Allow a class with no new methods to be defined by assigning from an
-                # existing class.
+            elif isinstance(node, ast.Assign) and node.col_offset == 0:
+                # Allow a class with no new methods to be defined by assigning
+                # from an existing class. The col_offset means we only pay
+                # attention to assignments at the top level of a module, not
+                # assignments inside method bodies.
                 for target in node.targets:
                     if isinstance(target, ast.Name):
                         self._classes[target.id] = node
 
     def is_required_for_platform(self, node):
-        """Checks if the class or function is required for the given platform.
-        It looks for a decorator with the name `not_required_on`.
+        """Checks if the class or function is required for the given platform. It looks
+        for a decorator with the name `not_required_on`.
 
         Returns:
             `True` if the class/function is required for the platform.
@@ -147,8 +149,7 @@ class DefinitionExtractor:
         return defaults
 
     def _extract_class_methods(self):
-        """Extract all the methods from the classes and save them in
-        `self.methods`.
+        """Extract all the methods from the classes and save them in `self.methods`.
 
         Use the combination of class and method name, like so:
         `<class_name>.<method_name>` as the key.
@@ -219,7 +220,9 @@ class DefinitionExtractor:
                 class_node = self._classes[class_name]
                 for node in ast.walk(class_node):
                     if isinstance(node, ast.FunctionDef):
-                        if self.is_required_for_platform(node):
+                        if self.is_required_for_platform(
+                            node
+                        ) and not node.name.startswith("simulate_"):
                             methods.append(node.name)
         return methods
 
@@ -273,7 +276,7 @@ def get_required_files(platform_category, path_to_backend):
 
 
 def create_impl_tests(root):
-    """Calling this function with a the path to a Toga backend will return the
+    """Calling this function with the path to a Toga backend will return the
     implementation tests for this backend.
 
     Args:

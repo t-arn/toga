@@ -15,6 +15,7 @@ class Tree(Widget):
         self.store = SourceTreeModel(
             [{"type": str, "attr": a} for a in self.interface._accessors],
             is_tree=is_tree,
+            missing_value=self.interface.missing_value,
         )
 
         # Create a tree view, and put it in a scroll view.
@@ -33,7 +34,6 @@ class Tree(Widget):
             self.treeview.append_column(column)
 
         self.native = Gtk.ScrolledWindow()
-        self.native.interface = self.interface
         self.native.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.native.add(self.treeview)
         self.native.set_min_content_width(200)
@@ -50,7 +50,7 @@ class Tree(Widget):
             else:
                 tree_model, tree_iter = selection.get_selected()
 
-            # Covert the tree iter into the actual node.
+            # Convert the tree iter into the actual node.
             if tree_iter:
                 node = tree_model.get(tree_iter, 0)[0]
             else:

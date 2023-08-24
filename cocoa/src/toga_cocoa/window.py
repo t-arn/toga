@@ -1,14 +1,9 @@
 from toga.command import Command as BaseCommand
+from toga_cocoa.container import Container
 from toga_cocoa.libs import (
     SEL,
     NSBackingStoreBuffered,
     NSClosableWindowMask,
-    NSLayoutAttributeBottom,
-    NSLayoutAttributeLeft,
-    NSLayoutAttributeRight,
-    NSLayoutAttributeTop,
-    NSLayoutConstraint,
-    NSLayoutRelationGreaterThanOrEqual,
     NSMakeRect,
     NSMiniaturizableWindowMask,
     NSMutableArray,
@@ -28,24 +23,6 @@ from toga_cocoa.libs import (
 
 def toolbar_identifier(cmd):
     return "ToolbarItem-%s" % id(cmd)
-
-
-class CocoaViewport:
-    def __init__(self, view):
-        self.view = view
-        # macOS always renders at 96dpi. Scaling is handled
-        # transparently at the level of the screen compositor.
-        self.dpi = 96
-        self.baseline_dpi = self.dpi
-
-    @property
-    def width(self):
-        # If `view` is `None`, we'll treat this a 0x0 viewport.
-        return 0 if self.view is None else self.view.frame.size.width
-
-    @property
-    def height(self):
-        return 0 if self.view is None else self.view.frame.size.height
 
 
 class WindowDelegate(NSObject):
@@ -77,7 +54,7 @@ class WindowDelegate(NSObject):
 
     @objc_method
     def toolbarAllowedItemIdentifiers_(self, toolbar):
-        "Determine the list of available toolbar items"
+        """Determine the list of available toolbar items."""
         # This method is required by the Cocoa API, but isn't actually invoked,
         # because customizable toolbars are no longer a thing.
         allowed = NSMutableArray.alloc().init()
@@ -87,7 +64,7 @@ class WindowDelegate(NSObject):
 
     @objc_method
     def toolbarDefaultItemIdentifiers_(self, toolbar):
-        "Determine the list of toolbar items that will display by default"
+        """Determine the list of toolbar items that will display by default."""
         default = NSMutableArray.alloc().init()
         for item in self.interface.toolbar:
             default.addObject_(toolbar_identifier(item))
@@ -97,7 +74,7 @@ class WindowDelegate(NSObject):
     def toolbar_itemForItemIdentifier_willBeInsertedIntoToolbar_(
         self, toolbar, identifier, insert: bool
     ):
-        "Create the requested toolbar button"
+        """Create the requested toolbar button."""
         native = NSToolbarItem.alloc().initWithItemIdentifier_(identifier)
         try:
             item = self.impl._toolbar_items[str(identifier)]
@@ -124,7 +101,7 @@ class WindowDelegate(NSObject):
 
     @objc_method
     def validateToolbarItem_(self, item) -> bool:
-        "Confirm if the toolbar item should be enabled"
+        """Confirm if the toolbar item should be enabled."""
         return self.impl._toolbar_items[str(item.itemIdentifier)].enabled
 
     ######################################################################
@@ -133,7 +110,7 @@ class WindowDelegate(NSObject):
 
     @objc_method
     def onToolbarButtonPress_(self, obj) -> None:
-        "Invoke the action tied to the toolbar button"
+        """Invoke the action tied to the toolbar button."""
         item = self.impl._toolbar_items[str(obj.itemIdentifier)]
         item.action(obj)
 
@@ -179,61 +156,42 @@ class Window:
 
         self.native.delegate = self.delegate
 
+        self.container = Container(on_refresh=self.content_refreshed)
+        self.native.contentView = self.container.native
+
     def create_toolbar(self):
         self._toolbar_items = {}
         for cmd in self.interface.toolbar:
             if isinstance(cmd, BaseCommand):
                 self._toolbar_items[toolbar_identifier(cmd)] = cmd
 
-        self._toolbar_native = NSToolbar.alloc().initWithIdentifier_(
+        self._toolbar_native = NSToolbar.alloc().initWithIdentifier(
             "Toolbar-%s" % id(self)
         )
-        self._toolbar_native.setDelegate_(self.delegate)
+        self._toolbar_native.setDelegate(self.delegate)
 
-        self.native.setToolbar_(self._toolbar_native)
-
-    def clear_content(self):
-        if self.interface.content:
-            for child in self.interface.content.children:
-                child._impl.container = None
+        self.native.setToolbar(self._toolbar_native)
 
     def set_content(self, widget):
-        # Set the window's view to the be the widget's native object.
-        self.native.contentView = widget.native
+        # Set the content of the window's container
+        self.container.content = widget
 
-        # Set the widget's viewport to be based on the window's content.
-        widget.viewport = CocoaViewport(view=widget.native)
+    def content_refreshed(self, container):
+        min_width = self.interface.content.layout.min_width
+        min_height = self.interface.content.layout.min_height
 
-        # Add all children to the content widget.
-        for child in widget.interface.children:
-            child._impl.container = widget
+        # If the minimum layout is bigger than the current window,
+        # increase the size of the window.
+        frame = self.native.frame
+        if frame.size.width < min_width and frame.size.height < min_height:
+            self.set_size((min_width, min_height))
+        elif frame.size.width < min_width:
+            self.set_size((min_width, frame.size.height))
+        elif frame.size.height < min_height:
+            self.set_size((frame.size.width, min_height))
 
-        # Enforce a minimum size based on the content size.
-        # This is enforcing the *minimum* size; the window might actually be
-        # bigger. If the window is resizable, using >= allows the window to
-        # be dragged larged; if not resizable, it enforces the smallest
-        # size that can be programmattically set on the window.
-        self._min_width_constraint = NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant_(  # NOQA: E501
-            widget.native,
-            NSLayoutAttributeRight,
-            NSLayoutRelationGreaterThanOrEqual,
-            widget.native,
-            NSLayoutAttributeLeft,
-            1.0,
-            100,
-        )
-        widget.native.addConstraint(self._min_width_constraint)
-
-        self._min_height_constraint = NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant_(  # NOQA: E501
-            widget.native,
-            NSLayoutAttributeBottom,
-            NSLayoutRelationGreaterThanOrEqual,
-            widget.native,
-            NSLayoutAttributeTop,
-            1.0,
-            100,
-        )
-        widget.native.addConstraint(self._min_height_constraint)
+        self.container.min_width = min_width
+        self.container.min_height = min_height
 
     def get_title(self):
         return str(self.native.title)
@@ -244,7 +202,7 @@ class Window:
     def get_position(self):
         # If there is no active screen, we can't get a position
         if len(NSScreen.screens) == 0:
-            return (0, 0)
+            return 0, 0
 
         # The "primary" screen has index 0 and origin (0, 0).
         primary_screen = NSScreen.screens[0].frame
@@ -275,7 +233,7 @@ class Window:
 
     def get_size(self):
         frame = self.native.frame
-        return (frame.size.width, frame.size.height)
+        return frame.size.width, frame.size.height
 
     def set_size(self, size):
         frame = self.native.frame
@@ -288,19 +246,6 @@ class Window:
     def show(self):
         self.native.makeKeyAndOrderFront(None)
 
-        # Render of the content with a 0 sized viewport; this will
-        # establish the minimum possible content size. Use that to enforce
-        # a minimum window size.
-        self.interface.content.style.layout(
-            self.interface.content,
-            CocoaViewport(view=None),
-        )
-        self._min_width_constraint.constant = self.interface.content.layout.width
-        self._min_height_constraint.constant = self.interface.content.layout.height
-
-        # Refresh with the actual viewport to do the proper rendering.
-        self.interface.content.refresh()
-
     def hide(self):
         self.native.orderOut(self.native)
 
@@ -310,11 +255,8 @@ class Window:
     def set_full_screen(self, is_full_screen):
         self.interface.factory.not_implemented("Window.set_full_screen()")
 
-    def set_on_close(self, handler):
-        pass
-
     def cocoa_windowShouldClose(self):
-        if self.interface.on_close:
+        if self.interface.on_close._raw:
             # The on_close handler has a cleanup method that will enforce
             # the close if the on_close handler requests it; this initial
             # "should close" request can always return False.

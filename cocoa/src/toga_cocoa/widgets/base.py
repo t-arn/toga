@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from toga.colors import TRANSPARENT
 from toga_cocoa.colors import native_color
 from toga_cocoa.constraints import Constraints
@@ -5,18 +7,18 @@ from toga_cocoa.constraints import Constraints
 
 class Widget:
     def __init__(self, interface):
+        super().__init__()
         self.interface = interface
         self.interface._impl = self
         self._container = None
-        self._viewport = None
         self.constraints = None
         self.native = None
         self.create()
         self.interface.style.reapply()
-        self.set_enabled(self.interface.enabled)
 
+    @abstractmethod
     def create(self):
-        raise NotImplementedError()
+        ...
 
     def set_app(self, app):
         pass
@@ -31,13 +33,12 @@ class Widget:
     @container.setter
     def container(self, container):
         if self.container:
-            if container:
-                raise RuntimeError("Already have a container")
-            else:
-                # existing container should be removed
-                self.constraints.container = None
-                self._container = None
-                self.native.removeFromSuperview()
+            assert container is None, f"{self} already has a container"
+
+            # Existing container should be removed
+            self.constraints.container = None
+            self._container = None
+            self.native.removeFromSuperview()
         elif container:
             # setting container
             self._container = container
@@ -49,29 +50,23 @@ class Widget:
 
         self.rehint()
 
-    @property
-    def viewport(self):
-        return self._viewport
-
-    @viewport.setter
-    def viewport(self, viewport):
-        self._viewport = viewport
+    def get_enabled(self):
+        return self.native.isEnabled
 
     def set_enabled(self, value):
-        self.native.enabled = self.interface.enabled
+        self.native.enabled = value
 
     # APPLICATOR
 
     def set_bounds(self, x, y, width, height):
-        # print("SET BOUNDS ON", self.interface, x, y, width, height)
+        # print(f"SET BOUNDS ON {self.interface} {width}x{height} @ ({x},{y})")
         self.constraints.update(x, y, width, height)
 
     def set_alignment(self, alignment):
         pass
 
     def set_hidden(self, hidden):
-        if self.native:
-            self.native.setHidden(hidden)
+        self.native.setHidden(hidden)
 
     def set_font(self, font):
         pass
@@ -86,23 +81,27 @@ class Widget:
             self.native.backgroundColor = native_color(color)
             self.native.drawsBackground = True
 
+    @property
+    def has_focus(self):
+        return (
+            self.native.window is not None
+            and self.native.window.firstResponder == self.native
+        )
+
     def focus(self):
-        self.interface.window._impl.native.makeFirstResponder(self.native)
+        if not self.has_focus and self.interface.window:
+            self.interface.window._impl.native.makeFirstResponder(self.native)
 
     def get_tab_index(self):
-        self.interface.factory.not_implementated("Widget.get_tab_index()")
+        self.interface.factory.not_implemented("Widget.get_tab_index()")
 
     def set_tab_index(self, tab_index):
-        self.interface.factory.not_implementated("Widget.set_tab_index()")
+        self.interface.factory.not_implemented("Widget.set_tab_index()")
 
     # INTERFACE
 
     def add_child(self, child):
-        if self.viewport:
-            # we are the the top level NSView
-            child.container = self
-        else:
-            child.container = self.container
+        child.container = self.container
 
     def insert_child(self, index, child):
         self.add_child(child)
@@ -111,11 +110,11 @@ class Widget:
         child.container = None
 
     def add_constraints(self):
-        self.native.translatesAutoresizingMaskIntoConstraints = False
         self.constraints = Constraints(self)
 
     def refresh(self):
         self.rehint()
 
+    @abstractmethod
     def rehint(self):
-        pass
+        ...
